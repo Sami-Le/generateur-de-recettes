@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Test Grist - vue personnalisée</title>
+<script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
+<style>
+  body{font-family:system-ui,sans-serif;margin:1rem}
+  table{border-collapse:collapse;width:100%}
+  th,td{border:1px solid #ccc;padding:.4rem .6rem;text-align:left}
+  th{background:#f4f4f4}
+</style>
+</head>
+<body>
+<h1>Données du tableau Grist</h1>
+<p id="info">En attente des données...</p>
+<table id="t"></table>
+<script>
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+grist.ready({requiredAccess: "read table"});
+grist.onRecords(records => {
+  const t = document.getElementById("t"), info = document.getElementById("info");
+  if(!records || !records.length){ info.textContent = "Aucune ligne dans le tableau."; t.innerHTML = ""; return; }
+  const cols = Object.keys(records[0]).filter(k => k !== "id" && k !== "manualSort");
+  info.textContent = records.length + " ligne(s) reçue(s) depuis Grist.";
+  t.innerHTML = "<thead><tr>" + cols.map(c => `<th>${esc(c)}</th>`).join("") + "</tr></thead><tbody>" +
+    records.map(r => "<tr>" + cols.map(c => `<td>${esc(typeof r[c] === "object" ? JSON.stringify(r[c]) : r[c])}</td>`).join("") + "</tr>").join("") + "</tbody>";
+});
+</script>
+</body>
+</html>

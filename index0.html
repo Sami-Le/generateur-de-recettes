@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Générateur de recettes</title>
+<style>
+  body{font-family:system-ui,sans-serif;max-width:900px;margin:2rem auto;padding:0 1rem;line-height:1.5;color:#222}
+  input[type=text]{width:100%;padding:.5rem;font:inherit}
+  fieldset{margin:1rem 0;border:1px solid #ccc}
+  label.chk{margin-right:1rem;display:inline-block}
+  button{padding:.6rem 1.2rem;font:inherit;cursor:pointer}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem;margin-top:1rem}
+  .card{border:1px solid #ddd;border-radius:8px;padding:.8rem;cursor:pointer}
+  .card img{width:100%;border-radius:6px}
+  .detail{border:2px solid #333;border-radius:8px;padding:1rem;margin-top:1.5rem}
+  iframe{width:100%;aspect-ratio:16/9;border:0}
+  small{color:#666}
+</style>
+</head>
+<body>
+<h1>Générateur de recettes</h1>
+<p>Indique les ingrédients que tu as (en français ou en anglais, séparés par des virgules), puis tes contraintes.</p>
+
+<label for="ing">Ingrédients disponibles</label>
+<input id="ing" type="text" value="poulet, riz, oignon" placeholder="ex : poulet, riz, oignon">
+
+<fieldset>
+  <legend>Allergies à exclure</legend>
+  <label class="chk"><input type="checkbox" name="allergy" value="gluten"> Gluten</label>
+  <label class="chk"><input type="checkbox" name="allergy" value="lait"> Lait</label>
+  <label class="chk"><input type="checkbox" name="allergy" value="oeufs"> Œufs</label>
+  <label class="chk"><input type="checkbox" name="allergy" value="arachides"> Arachides</label>
+  <label class="chk"><input type="checkbox" name="allergy" value="poisson"> Poisson / fruits de mer</label>
+</fieldset>
+<fieldset>
+  <legend>Régime</legend>
+  <label class="chk"><input type="radio" name="diet" value="none" checked> Aucun</label>
+  <label class="chk"><input type="radio" name="diet" value="veggie"> Végétarien</label>
+  <label class="chk"><input type="radio" name="diet" value="nopork"> Sans porc</label>
+</fieldset>
+<button id="go">Trouver des recettes</button>
+<p id="status" aria-live="polite"></p>
+<div id="results" class="grid"></div>
+<div id="detail"></div>
+<p><small>Recettes : TheMealDB (en anglais). Le temps et le budget ne sont pas encore gérés.</small></p>
+
+<script>
+const API = "https://www.themealdb.com/api/json/v1/1/";
+const FR_EN = {poulet:"chicken",boeuf:"beef",bœuf:"beef",porc:"pork",agneau:"lamb",saumon:"salmon",thon:"tuna",riz:"rice",oignon:"onion",ail:"garlic",tomate:"tomato",tomates:"tomato",pomme_de_terre:"potatoes","pomme de terre":"potatoes",carotte:"carrots",carottes:"carrots",oeuf:"egg",oeufs:"egg",œuf:"egg",lait:"milk",beurre:"butter",fromage:"cheese",creme:"cream",crème:"cream",farine:"flour",pates:"pasta",pâtes:"pasta",champignon:"mushrooms",champignons:"mushrooms",poivron:"bell pepper",citron:"lemon",courgette:"zucchini",epinards:"spinach",épinards:"spinach",lentilles:"lentils",pois_chiches:"chickpeas","pois chiches":"chickpeas"};
+const ALLERGENS = {
+  gluten:["flour","bread","pasta","spaghetti","noodle","breadcrumb","wheat","couscous","tortilla","macaroni","lasagne"],
+  lait:["milk","cheese","butter","cream","yogurt","yoghurt","parmesan","mozzarella","cheddar","ghee"],
+  oeufs:["egg"],
+  arachides:["peanut"],
+  poisson:["fish","salmon","tuna","cod","prawn","shrimp","anchov","mussel","squid","crab","haddock","mackerel","sardine"]
+};
+const MEAT_CATS = ["Beef","Chicken","Lamb","Pork","Seafood","Goat"];
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+function toEn(w){ const k = w.trim().toLowerCase(); return FR_EN[k] || k; }
+async function getJSON(u){ const r = await fetch(u); if(!r.ok) throw new Error("API"); return r.json(); }
+
+function ingredientsOf(m){
+  const list = [];
+  for(let i=1;i<=20;i++){
+    const n = (m["strIngredient"+i]||"").trim();
+    if(n) list.push({name:n, measure:(m["strMeasure"+i]||"").trim()});
+  }
+  return list;
+}
+function violates(m, allergies, diet){
+  const names = ingredientsOf(m).map(x => x.name.toLowerCase());
+  for(const a of allergies){
+    if(ALLERGENS[a].some(k => names.some(n => n.includes(k)))) return true;
+  }
+  if(diet === "veggie" && MEAT_CATS.includes(m.strCategory)) return true;
+  if(diet === "nopork" && (m.strCategory === "Pork" || names.some(n => /pork|bacon|ham|sausage|chorizo/.test(n)))) return true;
+  return false;
+}
+function embed(url){
+  const m = (url||"").match(/[?&]v=([\w-]{11})/);
+  return m ? `<iframe src="https://www.youtube.com/embed/${m[1]}" title="Vidéo de la recette" allowfullscreen></iframe>` : "<p><small>Pas de vidéo pour cette recette.</small></p>";
+}
+function showDetail(m){
+  const ings = ingredientsOf(m).map(i => `<li>${esc(i.measure)} ${esc(i.name)}</li>`).join("");
+  document.getElementById("detail").innerHTML = `<div class="detail">
+    <h2>${esc(m.strMeal)}</h2><p><small>${esc(m.strCategory)} · ${esc(m.strArea)}</small></p>
+    <h3>Ingrédients</h3><ul>${ings}</ul>
+    <h3>Préparation</h3><p style="white-space:pre-line">${esc(m.strInstructions)}</p>
+    <h3>Vidéo</h3>${embed(m.strYoutube)}</div>`;
+  document.getElementById("detail").scrollIntoView({behavior:"smooth"});
+}
+
+document.getElementById("go").addEventListener("click", async () => {
+  const status = document.getElementById("status"), box = document.getElementById("results");
+  box.innerHTML = ""; document.getElementById("detail").innerHTML = "";
+  const wanted = document.getElementById("ing").value.split(",").map(toEn).filter(Boolean);
+  const allergies = [...document.querySelectorAll("input[name=allergy]:checked")].map(x => x.value);
+  const diet = document.querySelector("input[name=diet]:checked").value;
+  if(!wanted.length){ status.textContent = "Ajoute au moins un ingrédient."; return; }
+  status.textContent = "Recherche en cours...";
+  try{
+    const score = {};
+    for(const w of wanted){
+      const d = await getJSON(API + "filter.php?i=" + encodeURIComponent(w.replace(/ /g,"_")));
+      (d.meals||[]).forEach(m => { score[m.idMeal] = (score[m.idMeal]||0) + 1; });
+    }
+    const ids = Object.keys(score).sort((a,b) => score[b]-score[a]).slice(0,30);
+    const meals = [];
+    for(const id of ids){
+      const d = await getJSON(API + "lookup.php?i=" + id);
+      const m = d.meals && d.meals[0];
+      if(m && !violates(m, allergies, diet)) meals.push({m, s:score[id]});
+      if(meals.length >= 9) break;
+    }
+    status.textContent = meals.length ? `${meals.length} recette(s) trouvée(s).` : "Aucune recette ne correspond. Essaie avec moins de contraintes.";
+    meals.forEach(({m,s}) => {
+      const c = document.createElement("div"); c.className = "card"; c.tabIndex = 0;
+      c.innerHTML = `<img src="${esc(m.strMealThumb)}/small" alt="${esc(m.strMeal)}"><h3>${esc(m.strMeal)}</h3><small>${s}/${wanted.length} ingrédient(s) trouvé(s)</small>`;
+      c.addEventListener("click", () => showDetail(m));
+      c.addEventListener("keydown", e => { if(e.key === "Enter") showDetail(m); });
+      box.appendChild(c);
+    });
+  }catch(e){ status.textContent = "Erreur de connexion à l'API."; }
+});
+</script>
+</body>
+</html>
