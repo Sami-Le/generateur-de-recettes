@@ -1,6 +1,6 @@
-# Générateur de recettes
+# Journal alimentaire
 
-Site web qui propose des recettes à partir des ingrédients disponibles et de contraintes (allergies, régime).
+Site web de suivi de l'alimentation inspiré de MyFitnessPal et Yazio : on note ce qu'on mange, le site calcule les calories et les macronutriments de la journée. Les recettes deviennent une fonction secondaire d'inspiration.
 
 Projet réalisé dans le cadre du cours de programmation Web (Master Numérique, Enjeux et Technologies).
 
@@ -9,39 +9,43 @@ Projet réalisé dans le cadre du cours de programmation Web (Master Numérique,
 |---|---|
 | `index.html` | Accueil avec liens vers les versions |
 | `index0.html` | Version 1 : recettes par ingrédients, allergies, régime, vidéo |
-| `index1.html` | Version 2 : ajoute les favoris et les recommandations personnalisées |
+| `index1.html` | Version 2 : favoris et recommandations personnalisées |
+| `index2.html` | Version 3 : journal alimentaire (fonction principale) et idées de repas |
 | `grist-widget.html` | Test d'une vue personnalisée Grist qui affiche les données d'un tableau |
 
 ## Problème
-Quand on ouvre son frigo, on sait rarement quoi cuisiner avec ce qu'on a, surtout avec des allergies ou un régime. Les sites de recettes classiques partent du plat, pas des ingrédients disponibles.
+Suivre ce qu'on mange est fastidieux : il faut chercher les valeurs nutritionnelles de chaque aliment et faire les additions. Le site automatise la recherche des aliments, le calcul des calories et des macros, et la comparaison avec un objectif quotidien.
 
-## Automatisation
-Le site enchaîne sans intervention manuelle : lecture des ingrédients, traduction, interrogation de l'API, classement des recettes, exclusion des allergènes et des régimes incompatibles, puis affichage de la fiche avec vidéo.
-
-## Version 2 : personnalisation
-Chaque fois que l'utilisateur aime une recette, son profil (catégories et cuisines préférées) est enregistré dans le navigateur (localStorage). Le score d'une recette combine le nombre d'ingrédients trouvés (poids 10) et l'affinité avec le profil. C'est un filtrage basé sur le contenu simplifié. Les recettes recommandées reçoivent le badge « Pour toi ».
+## Version 3 : fonctionnalités
+- Journal par jour avec quatre repas (petit-déjeuner, déjeuner, dîner, collations).
+- Recherche d'un aliment par nom ou par code-barres (Open Food Facts), quantité en grammes, calcul des calories et des macros.
+- Tableau de bord : total du jour, objectif de calories, calories restantes, répartition protéines, glucides, lipides.
+- Suivi de l'eau.
+- Profil : objectif de calories modifiable. Données stockées dans le navigateur (localStorage).
+- Onglet « Idées de repas » : recettes proposées à partir d'ingrédients (TheMealDB), avec vidéo, et ajout au journal avec calories saisies à la main.
 
 ## Feuille de route
 | Version | Contenu |
 |---|---|
 | V1 | Recettes par ingrédients, allergies, régime, vidéo (livrée) |
 | V2 | Favoris et recommandations personnalisées (livrée) |
-| V3 | Temps et budget, avec un jeu de recettes françaises en JSON ou Grist |
-| V4 | Valeurs nutritionnelles du plat (Open Food Facts) |
-| V5 | Scan de code-barres, planning de repas, liste de courses |
+| V3 | Journal alimentaire, calories et macros (livrée) |
+| V4 | Scan de code-barres avec la caméra (ZXing-js ou Quagga2), historique et graphiques |
+| V5 | Calcul des besoins à partir du profil, suivi du poids, recettes avec valeurs nutritionnelles |
 
 ## Choix techniques
 | Besoin | Solution |
 |---|---|
 | Hébergement | GitHub Pages (site statique) |
 | Front | HTML, CSS, JavaScript |
-| Recettes et vidéos | API TheMealDB (gratuite, sans clé) |
-| Profil | localStorage |
+| Aliments et nutriments | API Open Food Facts |
+| Idées de repas et vidéos | API TheMealDB |
+| Données utilisateur | localStorage |
 | Données tabulaires | Grist (vue personnalisée) |
 
 ## Limites connues
-- Les recettes de TheMealDB sont en anglais.
-- L'API gratuite filtre un seul ingrédient à la fois : le classement est calculé côté navigateur.
-- La détection des allergènes repose sur des mots-clés : elle est indicative.
-- Le profil est local à un navigateur, sans compte utilisateur.
-- Le temps de préparation et le budget ne sont pas disponibles dans l'API.
+- Open Food Facts est centrée sur les produits emballés : les aliments bruts (oignon, carotte) sont moins bien couverts.
+- Les valeurs de la base sont collaboratives et peuvent contenir des erreurs.
+- Les recettes de TheMealDB sont en anglais et n'ont pas de valeurs nutritionnelles : les calories sont saisies à la main.
+- Les données restent dans un seul navigateur, sans compte utilisateur.
+- Le site donne des estimations indicatives et ne remplace pas un avis diététique.

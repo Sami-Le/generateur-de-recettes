@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Journal alimentaire</title>
+<style>
+  body{font-family:system-ui,sans-serif;max-width:900px;margin:2rem auto;padding:0 1rem;line-height:1.5;color:#222}
+  nav{display:flex;gap:.5rem;margin:1rem 0}
+  nav button{padding:.5rem 1rem;border:1px solid #ccc;background:#f7f7f7}
+  nav button.on{background:#2e7d32;color:#fff;border-color:#2e7d32}
+  button{font:inherit;cursor:pointer;padding:.4rem .8rem}
+  input,select{font:inherit;padding:.4rem}
+  .box{border:1px solid #ddd;border-radius:8px;padding:1rem;margin:1rem 0}
+  progress{width:100%;height:1.2rem}
+  .macros{display:flex;gap:1rem;flex-wrap:wrap;margin-top:.8rem}
+  .macros div{flex:1;min-width:140px;background:#f4f4f4;border-radius:6px;padding:.5rem}
+  .meal h3{display:flex;justify-content:space-between;align-items:center;margin:0 0 .5rem}
+  .row{display:flex;justify-content:space-between;border-top:1px solid #eee;padding:.3rem 0}
+  .res{display:block;width:100%;text-align:left;margin:.2rem 0;background:#fff;border:1px solid #ddd}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;margin-top:1rem}
+  .card{border:1px solid #ddd;border-radius:8px;padding:.6rem;cursor:pointer}
+  .card img{width:100%;border-radius:6px}
+  iframe{width:100%;aspect-ratio:16/9;border:0}
+  small{color:#666}
+</style>
+</head>
+<body>
+<p><a href="index.html">← Accueil</a></p>
+<h1>Journal alimentaire</h1>
+<nav>
+  <button data-tab="journal" class="on">Journal</button>
+  <button data-tab="recettes">Idées de repas</button>
+  <button data-tab="profil">Profil</button>
+</nav>
+
+<section id="tab-journal">
+  <label for="date">Jour</label> <input id="date" type="date">
+  <div id="summary" class="box"></div>
+  <div id="meals"></div>
+  <div id="addPanel" class="box" hidden>
+    <h3 id="addTitle"></h3>
+    <input id="q" type="text" placeholder="Rechercher un aliment (ex : nutella, yaourt nature)">
+    <button id="searchBtn">Rechercher</button>
+    <p><input id="code" type="text" inputmode="numeric" placeholder="ou un code-barres (ex : 3017620422003)"> <button id="codeBtn">Chercher ce code</button></p>
+    <p id="addStatus" aria-live="polite"></p>
+    <div id="results"></div>
+    <div id="picked" hidden>
+      <p><strong id="pickedName"></strong></p>
+      <label for="grams">Quantité (g)</label> <input id="grams" type="number" min="1" value="100">
+      <span id="preview"></span>
+      <button id="addBtn">Ajouter au journal</button>
+    </div>
+    <button id="closeAdd">Fermer</button>
+  </div>
+</section>
+
+<section id="tab-recettes" hidden>
+  <p>Pas d'inspiration ? Indique des ingrédients (français ou anglais, séparés par des virgules) pour obtenir des idées de repas.</p>
+  <input id="ing" type="text" value="poulet, riz" style="width:70%">
+  <button id="recBtn">Trouver des idées</button>
+  <p id="recStatus" aria-live="polite"></p>
+  <div id="recipes" class="grid"></div>
+  <div id="recDetail"></div>
+</section>
+
+<section id="tab-profil" hidden>
+  <div class="box">
+    <label for="goal">Objectif de calories par jour</label>
+    <input id="goal" type="number" min="800" max="6000" step="50">
+    <button id="saveGoal">Enregistrer</button>
+    <p id="goalMsg"></p>
+  </div>
+  <div class="box">
+    <p>Les données sont stockées uniquement dans ce navigateur (localStorage).</p>
+    <button id="wipe">Effacer toutes mes données</button>
+  </div>
+</section>
+
+<p><small>Données nutritionnelles : Open Food Facts (valeurs pour 100 g). Idées de repas : TheMealDB. Estimations indicatives, pas un avis diététique.</small></p>
+
+<script>
+const MEALS = {breakfast:"Petit-déjeuner", lunch:"Déjeuner", dinner:"Dîner", snack:"Collations"};
+const OFF = "https://world.openfoodfacts.org/";
+const FIELDS = "product_name,brands,code,nutriments";
+const API = "https://www.themealdb.com/api/json/v1/1/";
+const FR_EN = {poulet:"chicken",boeuf:"beef",bœuf:"beef",porc:"pork",agneau:"lamb",saumon:"salmon",thon:"tuna",riz:"rice",oignon:"onion",ail:"garlic",tomate:"tomato",carotte:"carrots",oeuf:"egg",oeufs:"egg",lait:"milk",beurre:"butter",fromage:"cheese",creme:"cream",crème:"cream",farine:"flour",pates:"pasta",pâtes:"pasta",champignons:"mushrooms",citron:"lemon",courgette:"zucchini",lentilles:"lentils","pomme de terre":"potatoes","pois chiches":"chickpeas"};
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const $ = id => document.getElementById(id);
+
+let data = {};
+try{ data = JSON.parse(localStorage.getItem("journalData")) || {}; }catch(e){ data = {}; }
+let goal = parseInt(localStorage.getItem("journalGoal")) || 2000;
+let meal = "breakfast", results = [], picked = null, recipes = [];
+$("date").value = new Date(Date.now() - new Date().getTimezoneOffset()*60000).toISOString().slice(0,10);
+$("goal").value = goal;
+
+function save(){ localStorage.setItem("journalData", JSON.stringify(data)); }
+function today(){
+  const k = $("date").value;
+  if(!data[k]) data[k] = {meals:{breakfast:[],lunch:[],dinner:[],snack:[]}, water:0};
+  return data[k];
+}
+function num(x){ return Number(x) || 0; }
+function calc(p, g){
+  const n = p.nutriments || {}, f = g/100;
+  const kcal = n["energy-kcal_100g"] !== undefined ? num(n["energy-kcal_100g"]) : num(n["energy_100g"])/4.184;
+  return {kcal:kcal*f, p:num(n["proteins_100g"])*f, c:num(n["carbohydrates_100g"])*f, f:num(n["fat_100g"])*f};
+}
+
+function render(){
+  const d = today(), T = {kcal:0, p:0, c:0, f:0};
+  let html = "";
+  for(const [k, label] of Object.entries(MEALS)){
+    const items = d.meals[k];
+    let mk = 0;
+    items.forEach(e => { mk += e.kcal; T.kcal += e.kcal; T.p += e.p; T.c += e.c; T.f += e.f; });
+    html += `<div class="box meal"><h3><span>${label} · ${Math.round(mk)} kcal</span><button data-add="${k}">+ Ajouter</button></h3>` +
+      items.map((e,i) => `<div class="row"><span>${esc(e.name)} <small>${e.grams ? Math.round(e.grams)+" g" : "portion"}</small></span><span>${Math.round(e.kcal)} kcal <button data-del="${k}:${i}" aria-label="Supprimer">✕</button></span></div>`).join("") + `</div>`;
+  }
+  const cal = (T.p*4 + T.c*4 + T.f*9) || 1, pct = x => Math.round(x/cal*100);
+  const left = Math.round(goal - T.kcal);
+  $("summary").innerHTML = `<strong>${Math.round(T.kcal)}</strong> / ${goal} kcal · ${left >= 0 ? "reste "+left : "dépassement de "+(-left)} kcal
+    <progress max="${goal}" value="${Math.min(T.kcal, goal)}"></progress>
+    <div class="macros">
+      <div>Protéines<br><strong>${T.p.toFixed(0)} g</strong> <small>${pct(T.p*4)} %</small></div>
+      <div>Glucides<br><strong>${T.c.toFixed(0)} g</strong> <small>${pct(T.c*4)} %</small></div>
+      <div>Lipides<br><strong>${T.f.toFixed(0)} g</strong> <small>${pct(T.f*9)} %</small></div>
+    </div>
+    <p>Eau : ${d.water} ml <button data-water="-250">− 250</button> <button data-water="250">+ 250</button></p>`;
+  $("meals").innerHTML = html;
+}
+
+function openAdd(){
+  $("addPanel").hidden = false;
+  $("addTitle").textContent = "Ajouter à : " + MEALS[meal];
+  results = []; picked = null;
+  $("results").innerHTML = ""; $("picked").hidden = true; $("addStatus").textContent = "";
+  $("q").focus();
+  $("addPanel").scrollIntoView({behavior:"smooth"});
+}
+function showResults(){
+  $("addStatus").textContent = results.length ? "" : "Aucun résultat.";
+  $("results").innerHTML = results.map((p,i) => `<button class="res" data-res="${i}">${esc(p.product_name)} <small>${esc(p.brands || "")} · ${Math.round(calc(p,100).kcal)} kcal/100 g</small></button>`).join("");
+}
+function hasEnergy(p){ const n = p.nutriments; return p.product_name && n && (n["energy-kcal_100g"] !== undefined || n["energy_100g"] !== undefined); }
+async function search(){
+  const q = $("q").value.trim();
+  if(!q) return;
+  $("addStatus").textContent = "Recherche...";
+  try{
+    const r = await fetch(`${OFF}cgi/search.pl?search_terms=${encodeURIComponent(q)}&search_simple=1&action=process&json=1&page_size=15&fields=${FIELDS}`);
+    const j = await r.json();
+    results = (j.products || []).filter(hasEnergy).slice(0,8);
+    showResults();
+  }catch(e){ $("addStatus").textContent = "Erreur de connexion à Open Food Facts."; }
+}
+async function byCode(){
+  const c = $("code").value.replace(/\D/g, "");
+  if(!c) return;
+  $("addStatus").textContent = "Recherche du code...";
+  try{
+    const r = await fetch(`${OFF}api/v2/product/${c}.json?fields=${FIELDS}`);
+    const j = await r.json();
+    if(j.product && hasEnergy(j.product)){ results = [j.product]; showResults(); pick(0); }
+    else { results = []; showResults(); $("addStatus").textContent = "Produit introuvable ou sans données nutritionnelles."; }
+  }catch(e){ $("addStatus").textContent = "Erreur de connexion à Open Food Facts."; }
+}
+function preview(){
+  if(!picked) return;
+  const g = parseFloat($("grams").value) || 0, n = calc(picked, g);
+  $("preview").textContent = `= ${Math.round(n.kcal)} kcal · P ${n.p.toFixed(1)} g · G ${n.c.toFixed(1)} g · L ${n.f.toFixed(1)} g`;
+}
+function pick(i){
+  picked = results[i];
+  $("picked").hidden = false;
+  $("pickedName").textContent = picked.product_name + (picked.brands ? " (" + picked.brands + ")" : "");
+  $("grams").value = 100;
+  preview();
+}
+
+$("searchBtn").onclick = search;
+$("q").addEventListener("keydown", e => { if(e.key === "Enter") search(); });
+$("codeBtn").onclick = byCode;
+$("grams").addEventListener("input", preview);
+$("closeAdd").onclick = () => { $("addPanel").hidden = true; };
+$("date").addEventListener("change", render);
+$("addBtn").onclick = () => {
+  if(!picked) return;
+  const g = parseFloat($("grams").value);
+  if(!(g > 0)) return;
+  today().meals[meal].push({name:picked.product_name, grams:g, ...calc(picked, g)});
+  save(); render();
+  picked = null; $("picked").hidden = true; $("results").innerHTML = ""; $("q").value = ""; $("addStatus").textContent = "Aliment ajouté.";
+};
+
+document.addEventListener("click", ev => {
+  const t = ev.target;
+  if(t.dataset.add){ meal = t.dataset.add; openAdd(); }
+  else if(t.dataset.del){ const [k,i] = t.dataset.del.split(":"); today().meals[k].splice(+i, 1); save(); render(); }
+  else if(t.dataset.water){ const d = today(); d.water = Math.max(0, d.water + Number(t.dataset.water)); save(); render(); }
+  else if(t.dataset.res !== undefined){ pick(+t.dataset.res); }
+  else if(t.dataset.tab){ showTab(t.dataset.tab); }
+});
+function showTab(name){
+  for(const n of ["journal","recettes","profil"]){
+    $("tab-"+n).hidden = n !== name;
+    document.querySelector(`nav [data-tab=${n}]`).classList.toggle("on", n === name);
+  }
+}
+
+$("saveGoal").onclick = () => {
+  const g = parseInt($("goal").value);
+  if(g >= 800 && g <= 6000){ goal = g; localStorage.setItem("journalGoal", g); $("goalMsg").textContent = "Objectif enregistré."; render(); }
+  else $("goalMsg").textContent = "Entre une valeur entre 800 et 6000.";
+};
+$("wipe").onclick = () => { if(confirm("Effacer tout le journal ?")){ data = {}; save(); render(); } };
+
+function toEn(w){ const k = w.trim().toLowerCase(); return FR_EN[k] || k; }
+async function getJSON(u){ const r = await fetch(u); if(!r.ok) throw new Error("API"); return r.json(); }
+function ingredientsOf(m){
+  const l = [];
+  for(let i=1;i<=20;i++){ const n = (m["strIngredient"+i]||"").trim(); if(n) l.push((m["strMeasure"+i]||"").trim() + " " + n); }
+  return l;
+}
+function embed(url){
+  const m = (url||"").match(/[?&]v=([\w-]{11})/);
+  return m ? `<iframe src="https://www.youtube.com/embed/${m[1]}" title="Vidéo de la recette" allowfullscreen></iframe>` : "";
+}
+function showRecipe(m){
+  $("recDetail").innerHTML = `<div class="box"><h2>${esc(m.strMeal)}</h2><p><small>${esc(m.strCategory)} · ${esc(m.strArea)}</small></p>
+    <p>Ajouter au journal : <select id="rmeal">${Object.entries(MEALS).map(([k,v]) => `<option value="${k}">${v}</option>`).join("")}</select>
+    <input id="rkcal" type="number" min="0" placeholder="kcal de ta portion"> <button id="rAdd">Ajouter</button></p>
+    <small>Les recettes n'ont pas de valeurs nutritionnelles : tu saisis les calories toi-même.</small>
+    <h3>Ingrédients</h3><ul>${ingredientsOf(m).map(x => `<li>${esc(x)}</li>`).join("")}</ul>
+    <h3>Préparation</h3><p style="white-space:pre-line">${esc(m.strInstructions)}</p>${embed(m.strYoutube)}</div>`;
+  $("rAdd").onclick = () => {
+    const k = parseFloat($("rkcal").value);
+    if(!(k >= 0)) return;
+    $("date").value && today().meals[$("rmeal").value].push({name:m.strMeal, grams:0, kcal:k, p:0, c:0, f:0});
+    save(); render(); $("rAdd").textContent = "Ajouté au journal";
+  };
+  $("recDetail").scrollIntoView({behavior:"smooth"});
+}
+$("recBtn").onclick = async () => {
+  $("recipes").innerHTML = ""; $("recDetail").innerHTML = "";
+  const wanted = $("ing").value.split(",").map(toEn).filter(Boolean);
+  if(!wanted.length) return;
+  $("recStatus").textContent = "Recherche...";
+  try{
+    const score = {};
+    for(const w of wanted){
+      const d = await getJSON(API + "filter.php?i=" + encodeURIComponent(w.replace(/ /g,"_")));
+      (d.meals||[]).forEach(m => { score[m.idMeal] = (score[m.idMeal]||0) + 1; });
+    }
+    const ids = Object.keys(score).sort((a,b) => score[b]-score[a]).slice(0,6);
+    recipes = [];
+    for(const id of ids){ const d = await getJSON(API + "lookup.php?i=" + id); if(d.meals && d.meals[0]) recipes.push(d.meals[0]); }
+    $("recStatus").textContent = recipes.length ? "" : "Aucune idée trouvée.";
+    $("recipes").innerHTML = recipes.map((m,i) => `<div class="card" data-rec="${i}" tabindex="0"><img src="${esc(m.strMealThumb)}/small" alt="${esc(m.strMeal)}"><strong>${esc(m.strMeal)}</strong></div>`).join("");
+  }catch(e){ $("recStatus").textContent = "Erreur de connexion à l'API."; }
+};
+$("recipes").addEventListener("click", ev => { const c = ev.target.closest("[data-rec]"); if(c) showRecipe(recipes[+c.dataset.rec]); });
+
+render();
+</script>
+</body>
+</html>
