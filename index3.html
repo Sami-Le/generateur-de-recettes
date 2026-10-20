@@ -14,9 +14,11 @@
   .filters{display:flex;gap:1rem;flex-wrap:wrap;align-items:end;margin:1rem 0}
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:1rem}
   .card{border:1px solid #ddd;border-radius:8px;padding:.8rem;cursor:pointer}
-  .card img{width:100%;border-radius:6px}
+  .card img{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:6px}
+  .ph{width:100%;aspect-ratio:16/9;border-radius:6px;background:#e8f5e9;display:flex;align-items:center;justify-content:center;font-size:2.5rem}
   .badge{background:#e8f5e9;border-radius:4px;padding:0 .4rem;font-size:.85rem}
   .box{border:2px solid #333;border-radius:8px;padding:1rem;margin-top:1.5rem}
+  iframe{width:100%;aspect-ratio:16/9;border:0}
   small{color:#666}
 </style>
 </head>
@@ -65,13 +67,14 @@
 
 <div id="detail"></div>
 
-<p><small>Valeurs nutritionnelles des recettes françaises : calcul automatique à partir d'un tableau d'ingrédients (valeurs approximatives pour 100 g, à vérifier avec la table Ciqual de l'ANSES). Estimations indicatives, pas un avis diététique.</small></p>
+<p><small>Valeurs nutritionnelles des recettes françaises : calcul automatique à partir d'un tableau d'ingrédients (valeurs approximatives pour 100 g, à vérifier avec la table Ciqual de l'ANSES). Estimations indicatives, pas un avis diététique. Miniatures et vidéos : YouTube.</small></p>
 
 <script>
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const MEALS = {breakfast:"Petit-déjeuner", lunch:"Déjeuner", dinner:"Dîner", snack:"Collations"};
 const TYPES = {repas:"Repas", collation_sucree:"Collation sucrée", collation_salee:"Collation salée"};
+const EMOJI = {repas:"🍽️", collation_sucree:"🍓", collation_salee:"🥑"};
 let DB = null, shown = [], spoonRes = [];
 
 $("sMeal").innerHTML = Object.entries(MEALS).map(([k,v]) => `<option value="${k}">${v}</option>`).join("");
@@ -105,12 +108,15 @@ function renderList(){
   ).sort((a,b) => b.n.p - a.n.p);
   $("count").textContent = shown.length + " recette(s)";
   $("list").innerHTML = shown.map(({r,n},i) => `<div class="card" data-i="${i}" tabindex="0">
+    ${r.image ? `<img src="${esc(r.image)}" alt="${esc(r.nom)}" loading="lazy">` : `<div class="ph">${EMOJI[r.type] || "🍽️"}</div>`}
     <strong>${esc(r.nom)}</strong><br><small>${TYPES[r.type]} · ${r.temps_min} min · par portion</small><br>
     ${macros(n)}<br>${r.tags.map(t => `<span class="badge">${esc(t)}</span>`).join(" ")}</div>`).join("");
 }
 function showDetail(r){
   const n = perPortion(r);
   const def = r.type === "repas" ? "lunch" : "snack";
+  const video = r.video ? `<h3>Vidéo</h3><iframe src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(r.video)}" title="Vidéo : ${esc(r.nom)}" allowfullscreen loading="lazy"></iframe><p><small>${esc(r.video_titre || "")}${r.video_chaine ? " · " + esc(r.video_chaine) : ""}</small></p>` : "";
+  const search = `https://www.youtube.com/results?search_query=${encodeURIComponent(r.nom + " recette")}`;
   $("detail").innerHTML = `<div class="box"><h2>${esc(r.nom)}</h2>
     <p><small>${TYPES[r.type]} · ${r.temps_min} min · ${r.portions} portion(s)</small></p>
     <p><strong>Par portion :</strong> ${macros(n)}</p>
@@ -118,7 +124,9 @@ function showDetail(r){
     <button id="dadd">Ajouter 1 portion</button> <span id="dmsg"></span></p>
     <h3>Ingrédients (pour ${r.portions} portion(s))</h3>
     <ul>${r.ingredients.map(i => `<li>${i.g} g de ${esc((DB.ingredients[i.id]?.nom || i.id).toLowerCase())}</li>`).join("")}</ul>
-    <h3>Préparation</h3><ol>${r.etapes.map(e => `<li>${esc(e)}</li>`).join("")}</ol></div>`;
+    <h3>Préparation</h3><ol>${r.etapes.map(e => `<li>${esc(e)}</li>`).join("")}</ol>
+    ${video}
+    <p><a href="${search}" target="_blank" rel="noopener">▶ Voir d'autres vidéos sur YouTube</a></p></div>`;
   $("dadd").onclick = () => {
     addToJournal($("dmeal").value, {name:r.nom, grams:0, kcal:n.kcal, p:n.p, c:n.c, f:n.f});
     $("dmsg").textContent = "Ajouté à ton journal (voir index2).";
