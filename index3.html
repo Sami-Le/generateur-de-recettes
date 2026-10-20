@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recettes protéinées</title>
+<style>
+  body{font-family:system-ui,sans-serif;max-width:950px;margin:2rem auto;padding:0 1rem;line-height:1.5;color:#222}
+  nav{display:flex;gap:.5rem;margin:1rem 0}
+  nav button{padding:.5rem 1rem;border:1px solid #ccc;background:#f7f7f7}
+  nav button.on{background:#2e7d32;color:#fff;border-color:#2e7d32}
+  button{font:inherit;cursor:pointer;padding:.4rem .8rem}
+  input,select{font:inherit;padding:.4rem}
+  .filters{display:flex;gap:1rem;flex-wrap:wrap;align-items:end;margin:1rem 0}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:1rem}
+  .card{border:1px solid #ddd;border-radius:8px;padding:.8rem;cursor:pointer}
+  .card img{width:100%;border-radius:6px}
+  .badge{background:#e8f5e9;border-radius:4px;padding:0 .4rem;font-size:.85rem}
+  .box{border:2px solid #333;border-radius:8px;padding:1rem;margin-top:1.5rem}
+  small{color:#666}
+</style>
+</head>
+<body>
+<p><a href="index.html">← Accueil</a> · <a href="index2.html">Mon journal</a></p>
+<h1>Recettes protéinées</h1>
+<nav>
+  <button data-src="local" class="on">Mes recettes (français)</button>
+  <button data-src="spoon">Spoonacular (démo)</button>
+</nav>
+
+<section id="local">
+  <div class="filters">
+    <label>Type<br><select id="ftype">
+      <option value="">Tous</option>
+      <option value="repas">Repas</option>
+      <option value="collation_sucree">Collation sucrée</option>
+      <option value="collation_salee">Collation salée</option>
+    </select></label>
+    <label>Protéines min. par portion (g)<br><input id="fprot" type="number" min="0" value="0"></label>
+    <label>Recherche<br><input id="fq" type="text" placeholder="ex : banane, thon"></label>
+  </div>
+  <p id="count" aria-live="polite"></p>
+  <div id="list" class="grid"></div>
+</section>
+
+<section id="spoon" hidden>
+  <p>Recherche dans la base Spoonacular (résultats en anglais). Il faut une clé d'API personnelle, stockée uniquement dans ton navigateur. Plan gratuit : 50 points par jour.</p>
+  <div class="filters">
+    <label>Clé d'API<br><input id="sk" type="password" autocomplete="off"></label>
+    <label>Mot-clé (anglais)<br><input id="sq" type="text" placeholder="ex : chicken"></label>
+    <label>Type<br><select id="st">
+      <option value="">Tous</option>
+      <option value="main course">Plat</option>
+      <option value="snack">Snack</option>
+      <option value="dessert">Dessert</option>
+    </select></label>
+    <label>Protéines min. (g)<br><input id="sp" type="number" min="0" value="25"></label>
+    <button id="spGo">Rechercher</button>
+  </div>
+  <p>Ajouter au journal dans : <select id="sMeal"></select></p>
+  <p id="spStatus" aria-live="polite"></p>
+  <div id="spList" class="grid"></div>
+  <p><small>Données : <a href="https://spoonacular.com/food-api" target="_blank" rel="noopener">spoonacular.com</a></small></p>
+</section>
+
+<div id="detail"></div>
+
+<p><small>Valeurs nutritionnelles des recettes françaises : calcul automatique à partir d'un tableau d'ingrédients (valeurs approximatives pour 100 g, à vérifier avec la table Ciqual de l'ANSES). Estimations indicatives, pas un avis diététique.</small></p>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const MEALS = {breakfast:"Petit-déjeuner", lunch:"Déjeuner", dinner:"Dîner", snack:"Collations"};
+const TYPES = {repas:"Repas", collation_sucree:"Collation sucrée", collation_salee:"Collation salée"};
+let DB = null, shown = [], spoonRes = [];
+
+$("sMeal").innerHTML = Object.entries(MEALS).map(([k,v]) => `<option value="${k}">${v}</option>`).join("");
+$("sk").value = localStorage.getItem("spoonKey") || "";
+
+function addToJournal(meal, entry){
+  let data = {};
+  try{ data = JSON.parse(localStorage.getItem("journalData")) || {}; }catch(e){ data = {}; }
+  const k = new Date(Date.now() - new Date().getTimezoneOffset()*60000).toISOString().slice(0,10);
+  if(!data[k]) data[k] = {meals:{breakfast:[],lunch:[],dinner:[],snack:[]}, water:0};
+  data[k].meals[meal].push(entry);
+  localStorage.setItem("journalData", JSON.stringify(data));
+}
+function perPortion(r){
+  const t = {kcal:0, p:0, c:0, f:0};
+  for(const i of r.ingredients){
+    const x = DB.ingredients[i.id]; if(!x) continue;
+    const f = i.g/100;
+    t.kcal += x.kcal*f; t.p += x.p*f; t.c += x.c*f; t.f += x.f*f;
+  }
+  const n = r.portions || 1;
+  return {kcal:t.kcal/n, p:t.p/n, c:t.c/n, f:t.f/n};
+}
+function macros(n){ return `${Math.round(n.kcal)} kcal · P ${Math.round(n.p)} g · G ${Math.round(n.c)} g · L ${Math.round(n.f)} g`; }
+
+function renderList(){
+  const type = $("ftype").value, minP = parseFloat($("fprot").value) || 0, q = $("fq").value.trim().toLowerCase();
+  shown = DB.recettes.map(r => ({r, n:perPortion(r)})).filter(({r,n}) =>
+    (!type || r.type === type) && n.p >= minP &&
+    (!q || r.nom.toLowerCase().includes(q) || r.ingredients.some(i => (DB.ingredients[i.id]?.nom || "").toLowerCase().includes(q)))
+  ).sort((a,b) => b.n.p - a.n.p);
+  $("count").textContent = shown.length + " recette(s)";
+  $("list").innerHTML = shown.map(({r,n},i) => `<div class="card" data-i="${i}" tabindex="0">
+    <strong>${esc(r.nom)}</strong><br><small>${TYPES[r.type]} · ${r.temps_min} min · par portion</small><br>
+    ${macros(n)}<br>${r.tags.map(t => `<span class="badge">${esc(t)}</span>`).join(" ")}</div>`).join("");
+}
+function showDetail(r){
+  const n = perPortion(r);
+  const def = r.type === "repas" ? "lunch" : "snack";
+  $("detail").innerHTML = `<div class="box"><h2>${esc(r.nom)}</h2>
+    <p><small>${TYPES[r.type]} · ${r.temps_min} min · ${r.portions} portion(s)</small></p>
+    <p><strong>Par portion :</strong> ${macros(n)}</p>
+    <p>Ajouter au journal : <select id="dmeal">${Object.entries(MEALS).map(([k,v]) => `<option value="${k}"${k===def?" selected":""}>${v}</option>`).join("")}</select>
+    <button id="dadd">Ajouter 1 portion</button> <span id="dmsg"></span></p>
+    <h3>Ingrédients (pour ${r.portions} portion(s))</h3>
+    <ul>${r.ingredients.map(i => `<li>${i.g} g de ${esc((DB.ingredients[i.id]?.nom || i.id).toLowerCase())}</li>`).join("")}</ul>
+    <h3>Préparation</h3><ol>${r.etapes.map(e => `<li>${esc(e)}</li>`).join("")}</ol></div>`;
+  $("dadd").onclick = () => {
+    addToJournal($("dmeal").value, {name:r.nom, grams:0, kcal:n.kcal, p:n.p, c:n.c, f:n.f});
+    $("dmsg").textContent = "Ajouté à ton journal (voir index2).";
+  };
+  $("detail").scrollIntoView({behavior:"smooth"});
+}
+
+function nut(r, name){ const a = ((r.nutrition && r.nutrition.nutrients) || []).find(x => x.name === name); return a ? a.amount : 0; }
+function spoonCards(){
+  $("spList").innerHTML = spoonRes.map((r,i) => `<div class="card" data-s="${i}">
+    <img src="${esc(r.image)}" alt="${esc(r.title)}"><strong>${esc(r.title)}</strong><br>
+    <small>${r.readyInMinutes || "?"} min · par portion</small><br>
+    ${Math.round(nut(r,"Calories"))} kcal · P ${Math.round(nut(r,"Protein"))} g · G ${Math.round(nut(r,"Carbohydrates"))} g · L ${Math.round(nut(r,"Fat"))} g<br>
+    <button data-sadd="${i}">Ajouter au journal</button>
+    ${r.sourceUrl ? ` <a href="${esc(r.sourceUrl)}" target="_blank" rel="noopener">Voir la recette</a>` : ""}</div>`).join("");
+}
+$("spGo").onclick = async () => {
+  const key = $("sk").value.trim(), st = $("spStatus");
+  if(!key){ st.textContent = "Colle ta clé d'API Spoonacular."; return; }
+  localStorage.setItem("spoonKey", key);
+  const q = $("sq").value.trim(), type = $("st").value, mp = parseFloat($("sp").value) || 0;
+  let url = `https://api.spoonacular.com/recipes/complexSearch?apiKey=${encodeURIComponent(key)}&number=6&addRecipeNutrition=true`;
+  if(q) url += "&query=" + encodeURIComponent(q);
+  if(type) url += "&type=" + encodeURIComponent(type);
+  if(mp > 0) url += "&minProtein=" + encodeURIComponent(mp);
+  st.textContent = "Recherche...";
+  try{
+    const r = await fetch(url);
+    if(r.status === 402){ st.textContent = "Quota quotidien atteint (50 points sur le plan gratuit). Réessaie demain."; return; }
+    if(r.status === 401){ st.textContent = "Clé d'API invalide."; return; }
+    if(!r.ok) throw new Error("API");
+    const j = await r.json();
+    spoonRes = j.results || [];
+    st.textContent = spoonRes.length ? spoonRes.length + " résultat(s)." : "Aucun résultat.";
+    spoonCards();
+  }catch(e){ st.textContent = "Erreur de connexion à Spoonacular."; }
+};
+
+document.addEventListener("click", ev => {
+  const t = ev.target;
+  if(t.dataset.src){
+    for(const s of ["local","spoon"]){
+      $(s).hidden = s !== t.dataset.src;
+      document.querySelector(`nav [data-src=${s}]`).classList.toggle("on", s === t.dataset.src);
+    }
+    $("detail").innerHTML = "";
+    return;
+  }
+  if(t.dataset.sadd !== undefined){
+    const r = spoonRes[+t.dataset.sadd];
+    addToJournal($("sMeal").value, {name:r.title, grams:0, kcal:nut(r,"Calories"), p:nut(r,"Protein"), c:nut(r,"Carbohydrates"), f:nut(r,"Fat")});
+    t.textContent = "Ajouté";
+    return;
+  }
+  const c = t.closest("[data-i]");
+  if(c && $("local").contains(c)) showDetail(shown[+c.dataset.i].r);
+});
+["ftype","fprot","fq"].forEach(id => $(id).addEventListener("input", () => DB && renderList()));
+
+fetch("recettes.json").then(r => r.json()).then(j => { DB = j; renderList(); })
+  .catch(() => { $("count").textContent = "Impossible de charger recettes.json (ouvre le site via GitHub Pages ou un serveur local)."; });
+</script>
+</body>
+</html>
