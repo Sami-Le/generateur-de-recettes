@@ -13,6 +13,8 @@ Projet réalisé dans le cadre du cours de programmation Web (Master Numérique,
 | `index2.html` | Version 3 : journal alimentaire (fonction principale) et idées de repas |
 | `index3.html` | Version 4 : recettes protéinées en français, nutrition calculée, mode Spoonacular |
 | `index4.html` | Version 5 : journal avec historique et graphique sur 7 jours, calcul des besoins caloriques |
+| `index5.html` | Version 6 : recherche d'aliments dans la table Ciqual (ANSES) et Open Food Facts |
+| `aliments.json` | Table Ciqual 2025 convertie (aliments génériques, valeurs pour 100 g) |
 | `recettes.json` | Données de la V4 : tableau d'ingrédients et recettes |
 | `grist-widget.html` | Test d'une vue personnalisée Grist (le test demandé a été fait avec le Custom Widget Builder dans Grist) |
 
@@ -41,7 +43,8 @@ Suivre ce qu'on mange est fastidieux : il faut chercher les valeurs nutritionnel
 | V3 | Journal alimentaire, calories et macros (livrée) |
 | V4 | Recettes protéinées en français, nutrition calculée, Spoonacular (livrée) |
 | V5 | Historique et graphique des calories sur 7 jours, calcul des besoins caloriques (livrée) |
-| Suite | Scan de code-barres avec la caméra, plus de recettes françaises, valeurs vérifiées avec Ciqual |
+| V6 | Recherche d'aliments dans la table Ciqual de l'ANSES en plus d'Open Food Facts (livrée) |
+| Suite | Scan de code-barres avec la caméra, plus de recettes françaises, valeurs de `recettes.json` vérifiées avec Ciqual, FatSecret via un serveur relais |
 | Piste | Veille automatique de recettes populaires (tâche planifiée qui met à jour un fichier JSON après relecture humaine) |
 
 ## Choix techniques
@@ -49,6 +52,7 @@ Suivre ce qu'on mange est fastidieux : il faut chercher les valeurs nutritionnel
 |---|---|
 | Hébergement | GitHub Pages (site statique) |
 | Front | HTML, CSS, JavaScript |
+| Aliments génériques | Table Ciqual de l'ANSES (`aliments.json`) |
 | Aliments emballés | API Open Food Facts |
 | Recettes françaises | Fichier `recettes.json` |
 | Recettes en anglais | API TheMealDB (V1 à V3), API Spoonacular (V4) |

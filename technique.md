@@ -9,8 +9,9 @@ Le site est **statique** : des fichiers HTML (avec leur CSS et leur JavaScript i
 ```mermaid
 flowchart LR
     subgraph GH["GitHub Pages (fichiers statiques)"]
-        H["index0.html à index4.html"]
+        H["index0.html à index5.html"]
         R["recettes.json"]
+        A["aliments.json<br/>table Ciqual"]
     end
     subgraph NAV["Navigateur de l'utilisateur"]
         JS["JavaScript de la page"]
@@ -24,6 +25,7 @@ flowchart LR
     end
     H -->|"téléchargement"| JS
     R -->|"fetch (V4)"| JS
+    A -->|"fetch (V6)"| JS
     JS <--> LS
     JS -->|"fetch"| OFF
     JS -->|"fetch"| MDB
@@ -31,7 +33,10 @@ flowchart LR
     JS -->|"iframe"| YT
 ```
 
-Hors du site, un script Python local (`scripts/trouver_videos.py`) interroge l'API YouTube Data pour ajouter une vidéo et une miniature à chaque recette de `recettes.json`. Il n'est jamais exécuté par le site.
+Hors du site, deux scripts Python locaux préparent des données, sans jamais être exécutés par le site :
+
+- `scripts/trouver_videos.py` interroge l'API YouTube Data pour ajouter une vidéo et une miniature à chaque recette de `recettes.json` ;
+- `scripts/ciqual_vers_json.py` convertit la table Ciqual de l'ANSES (fichier Excel) en `aliments.json`.
 
 ## Fichiers du dépôt
 
@@ -43,16 +48,19 @@ Hors du site, un script Python local (`scripts/trouver_videos.py`) interroge l'A
 | `index2.html` | V3 : journal alimentaire |
 | `index3.html` | V4 : recettes protéinées en français + mode Spoonacular |
 | `index4.html` | V5 : journal + historique 7 jours + calcul des besoins |
+| `index5.html` | V6 : V5 + recherche dans la table Ciqual |
 | `recettes.json` | Ingrédients (valeurs pour 100 g) et recettes de la V4 |
+| `aliments.json` | Table Ciqual 2025 convertie : environ 3 300 aliments génériques (valeurs pour 100 g) |
 | `grist-widget.html` | Vue personnalisée Grist chargée par URL (test du cours) |
 | `scripts/trouver_videos.py` | Script local de remplissage des vidéos YouTube |
+| `scripts/ciqual_vers_json.py` | Script local de conversion de la table Ciqual |
 | `accueil.md`, `utilisateur.md`, `technique.md`, `installation.md` | Documentation |
 
 Règle du projet : une nouvelle version = un nouveau fichier `indexN.html` ; les versions précédentes ne sont jamais modifiées.
 
-## Organisation de `index4.html` (V5)
+## Organisation de `index4.html` (V5) et `index5.html` (V6)
 
-La page fonctionne avec quatre onglets (des `<section>` affichées ou masquées par `showTab()`).
+La V6 reprend la V5 à l'identique, sauf la recherche d'aliments (voir plus bas). La page fonctionne avec quatre onglets (des `<section>` affichées ou masquées par `showTab()`).
 
 ```mermaid
 flowchart TD
@@ -75,6 +83,7 @@ flowchart TD
 | `render()` | Affiche le jour choisi : résumé, macros, eau, liste des repas |
 | `calc(produit, grammes)` | Calcule kcal et macros à partir des valeurs pour 100 g d'Open Food Facts |
 | `search()` / `byCode()` | Recherche d'un aliment par nom ou par code-barres |
+| `chargerCiqual()` / `chercherCiqual(q)` | V6 : charge `aliments.json` au premier besoin et y cherche les aliments |
 | `renderHistory()` | Calcule et affiche le résumé, le graphique et le tableau des 7 jours |
 | `dayTotals(clé)` | Totaux d'un jour, **sans créer d'entrée vide** dans le journal |
 | `isoDate(date)` | Date locale au format `AAAA-MM-JJ`, le format des clés du journal |
@@ -144,6 +153,32 @@ Exemple de `journalData` :
 
 Valeurs pour 100 g multipliées par `grammes / 100`. Si `energy-kcal_100g` est absent, on convertit les kilojoules : `energy_100g / 4,184`.
 
+### Recherche d'aliments (V6)
+
+```mermaid
+flowchart TD
+    Q["Texte tapé"] --> N["Minuscules sans accents"]
+    N --> C{"aliments.json<br/>déjà chargé ?"}
+    C -->|"non"| L["fetch aliments.json<br/>une seule fois"]
+    C -->|"oui"| F
+    L --> F["Filtre : tous les mots dans le nom<br/>tri : commence par le 1er mot, puis nom court"]
+    F --> R1["8 aliments Ciqual<br/>affichés tout de suite"]
+    Q --> O["Open Food Facts<br/>cgi/search.pl"]
+    O --> R2["8 produits de marque<br/>affichés ensuite"]
+    O -.->|"erreur réseau"| E["Message, les résultats Ciqual restent"]
+```
+
+- Chaque aliment Ciqual est transformé en objet au même format qu'un produit Open Food Facts (`product_name`, `nutriments`) : `calc()`, `pick()` et l'ajout au journal fonctionnent sans modification.
+- Un compteur (`rechercheNo`) empêche une réponse lente d'Open Food Facts d'écraser une recherche plus récente.
+- Format compact de `aliments.json` (un tableau par aliment, environ 315 Ko) :
+
+```json
+{"colonnes": ["code", "nom", "groupe", "kcal", "p", "c", "f"],
+ "aliments": [["20009", "Carotte, crue", "légumes", 30, 0.8, 5.2, 0.2]]}
+```
+
+- Conversion des valeurs Ciqual par le script : « traces » → 0, « < x » → x / 2, « - » → inconnu ; protéines « N × facteur de Jones », sinon « N × 6,25 » ; les aliments sans énergie sont ignorés.
+
 ### Historique sur 7 jours
 
 ```mermaid
@@ -181,7 +216,8 @@ Exemple : homme, 25 ans, 70 kg, 175 cm, activité modérée → MB = 1 674 kcal,
 
 | Service | Utilisé par | Limites |
 |---|---|---|
-| [Open Food Facts](https://openfoodfacts.github.io/openfoodfacts-server/api/) | V3, V5 | Base collaborative (erreurs possibles), surtout des produits emballés |
+| [Table Ciqual, ANSES](https://ciqual.anses.fr/) | V6 (fichier `aliments.json`) | Aliments génériques, sans marques ; Licence Ouverte Etalab, source à citer |
+| [Open Food Facts](https://openfoodfacts.github.io/openfoodfacts-server/api/) | V3, V5, V6 | Base collaborative (erreurs possibles), surtout des produits emballés |
 | [TheMealDB](https://www.themealdb.com/api.php) | V1 à V3, V5 | En anglais, sans valeurs nutritionnelles |
 | [Spoonacular](https://spoonacular.com/food-api) | V4 | Clé personnelle, quota gratuit limité, résultats en anglais |
 | YouTube (lecteur `youtube-nocookie.com`) | V4 | Vidéos choisies par le script, à relire |

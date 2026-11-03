@@ -1,6 +1,6 @@
 # Guide utilisateur
 
-Ce guide explique comment utiliser la version actuelle du site (V5, `index4.html`) et la page des recettes protéinées (`index3.html`).
+Ce guide explique comment utiliser la version actuelle du site (V6, `index5.html`) et la page des recettes protéinées (`index3.html`).
 
 Retour à l'[accueil de la documentation](accueil.md).
 
@@ -52,7 +52,11 @@ Onglet **Journal** :
 
 1. Choisis le jour (aujourd'hui par défaut).
 2. Dans un repas (petit-déjeuner, déjeuner, dîner, collations), clique sur **+ Ajouter**.
-3. Cherche un aliment par son nom (ex. « yaourt nature ») ou saisis son code-barres (les chiffres sous le code-barres de l'emballage).
+3. Cherche un aliment par son nom (ex. « carotte crue », « donut ») ou saisis son code-barres (les chiffres sous le code-barres de l'emballage). Les résultats arrivent en deux groupes :
+   - **Aliments génériques (Ciqual, ANSES)** : valeurs moyennes officielles d'un type d'aliment (« Carotte, crue », « Riz blanc, cuit »). Idéal pour les aliments bruts et le fait maison.
+   - **Produits de marque (Open Food Facts)** : produits de supermarché précis (une marque, un distributeur). Le code-barres cherche uniquement dans ce groupe.
+
+   Les accents et majuscules n'ont pas d'importance, et tous les mots tapés doivent figurer dans le nom (« poulet cuit »).
 4. Choisis un résultat, indique la quantité en grammes : un aperçu des calories et des macros s'affiche.
 5. Clique sur **Ajouter au journal**.
 
@@ -62,19 +66,23 @@ Le résumé du jour affiche les calories consommées par rapport à l'objectif, 
 sequenceDiagram
     actor U as Utilisateur
     participant S as Site
+    participant C as Table Ciqual
     participant O as Open Food Facts
     U->>S: Clique sur « + Ajouter » dans un repas
-    U->>S: Tape un nom d'aliment ou un code-barres
-    S->>O: Recherche du produit
+    U->>S: Tape un nom d'aliment
+    S->>C: Recherche dans aliments.json
+    C-->>S: Aliments génériques
+    S-->>U: Résultats Ciqual tout de suite
+    S->>O: Recherche des produits de marque
     O-->>S: Produits et valeurs pour 100 g
-    S-->>U: Liste des résultats
+    S-->>U: Résultats Open Food Facts ensuite
     U->>S: Choisit un produit et la quantité en grammes
     S-->>U: Aperçu des calories et des macros
     U->>S: Ajouter au journal
     S-->>U: Résumé du jour mis à jour
 ```
 
-> La base Open Food Facts contient surtout des produits emballés. Pour un aliment brut (oignon, carotte), les résultats peuvent être absents ou approximatifs.
+> Si Open Food Facts ne répond pas, les résultats Ciqual restent affichés. Open Food Facts est une base collaborative : un produit peut manquer ou avoir des valeurs incomplètes.
 
 ## 3. Suivre la semaine
 
@@ -91,8 +99,8 @@ Onglet **Historique** :
 
 ## 4. Trouver des idées de repas
 
-- Onglet **Idées de repas** (V5) : indique des ingrédients séparés par des virgules (ex. « poulet, riz ») pour obtenir des recettes de la base TheMealDB (en anglais, sans valeurs nutritionnelles : tu saisis les calories de ta portion).
-- Page **Recettes protéinées** (`index3.html`, lien en haut de la V5) : 12 recettes françaises avec calories et macros calculées. Filtre par type (repas, collation sucrée, collation salée), par protéines minimales, ou cherche un ingrédient. Le bouton **Ajouter 1 portion** l'ajoute au journal avec ses vraies valeurs.
+- Onglet **Idées de repas** : indique des ingrédients séparés par des virgules (ex. « poulet, riz ») pour obtenir des recettes de la base TheMealDB (en anglais, sans valeurs nutritionnelles : tu saisis les calories de ta portion).
+- Page **Recettes protéinées** (`index3.html`, lien en haut de la page) : 12 recettes françaises avec calories et macros calculées. Filtre par type (repas, collation sucrée, collation salée), par protéines minimales, ou cherche un ingrédient. Le bouton **Ajouter 1 portion** l'ajoute au journal avec ses vraies valeurs.
 
 ## 5. Où sont mes données ?
 

@@ -19,7 +19,7 @@ Le site n'a pas besoin d'installation pour être utilisé : il suffit d'ouvrir <
 flowchart TD
     A["Cloner le dépôt"] --> B{"Quelle page ?"}
     B -->|"index0 à index2, index4"| C["Double-clic sur le fichier HTML"]
-    B -->|"index3.html<br/>(charge recettes.json)"| D["Lancer un serveur local<br/>python -m http.server"]
+    B -->|"index3 et index5<br/>(chargent un fichier JSON)"| D["Lancer un serveur local<br/>python -m http.server"]
     D --> E["Ouvrir http://localhost:8000"]
     C --> F["Modifier le code"]
     E --> F
@@ -39,13 +39,13 @@ cd generateur-de-recettes
 
 Les pages `index0.html`, `index1.html`, `index2.html` et `index4.html` s'ouvrent directement par un double-clic.
 
-`index3.html` charge `recettes.json` avec `fetch`, ce que le navigateur bloque pour un fichier ouvert directement (`file://`). Il faut un petit serveur local, lancé depuis le dossier du projet :
+`index3.html` charge `recettes.json` et `index5.html` charge `aliments.json` avec `fetch`, ce que le navigateur bloque pour un fichier ouvert directement (`file://`). Il faut un petit serveur local, lancé depuis le dossier du projet :
 
 ```bash
 python -m http.server 8000
 ```
 
-Puis ouvrir <http://localhost:8000/> (ou <http://localhost:8000/index3.html>). `Ctrl + C` arrête le serveur.
+Puis ouvrir <http://localhost:8000/> (ou <http://localhost:8000/index5.html>). `Ctrl + C` arrête le serveur.
 
 ### 3. Déboguer
 
@@ -90,11 +90,26 @@ Le script `scripts/trouver_videos.py` cherche une vidéo pour chaque recette de 
 
 Coût : environ 100 unités de quota par recette, sur 10 000 par jour.
 
+### 6. Mettre à jour la table Ciqual (`aliments.json`)
+
+Quand l'ANSES publie une nouvelle version de la table :
+
+1. Télécharger le fichier Excel de la table en français sur <https://ciqual.anses.fr/> (ou sur data.gouv.fr si le site est en maintenance).
+2. Installer la bibliothèque qui lit Excel : `pip install xlrd` pour un fichier `.xls`, `pip install openpyxl` pour un `.xlsx`.
+3. Depuis la racine du dépôt :
+
+   ```bash
+   python scripts/ciqual_vers_json.py chemin/vers/Table_Ciqual_2025_FR.xls
+   ```
+
+4. Le script affiche le nombre d'aliments écrits dans `aliments.json`. Vérifier quelques valeurs dans le site, puis commiter `aliments.json`. Le fichier Excel lui-même n'a pas besoin d'être dans le dépôt.
+
 ## Problèmes courants
 
 | Symptôme | Cause probable | Solution |
 |---|---|---|
-| `index3.html` n'affiche aucune recette, erreur CORS ou `fetch` dans la console | Fichier ouvert par double-clic | Passer par `python -m http.server` |
+| `index3.html` n'affiche aucune recette, ou `index5.html` affiche « La table Ciqual n'a pas pu être chargée » | Fichier ouvert par double-clic | Passer par `python -m http.server` |
+| Le script Ciqual affiche « Colonne introuvable » | L'ANSES a renommé une colonne | Le script liste les en-têtes lus : ajouter le nouveau libellé dans `COLONNES` |
 | Le site en ligne ne montre pas la dernière modification | Publication en cours ou cache du navigateur | Attendre 1 à 2 minutes, puis recharger avec `Ctrl + F5` |
 | « Erreur de connexion à Open Food Facts » | API indisponible ou hors ligne | Réessayer plus tard |
 | Le script affiche « Définis la variable d'environnement YOUTUBE_API_KEY » | Clé absente | Refaire l'étape 2 dans le même terminal |
