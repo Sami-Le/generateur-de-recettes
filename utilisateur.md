@@ -1,6 +1,6 @@
 # Guide utilisateur
 
-Ce guide explique comment utiliser la version actuelle du site (V6, `index5.html`) et la page des recettes protéinées (`index3.html`).
+Ce guide explique comment utiliser la version actuelle du site (V7, `index6.html`) et la page des recettes protéinées (`index3.html`).
 
 Retour à l'[accueil de la documentation](accueil.md).
 
@@ -50,17 +50,21 @@ flowchart TD
 
 Onglet **Journal** :
 
-1. Choisis le jour (aujourd'hui par défaut).
+1. Choisis le jour avec les flèches ‹ › ou le calendrier (aujourd'hui par défaut, pas de jour dans le futur).
 2. Dans un repas (petit-déjeuner, déjeuner, dîner, collations), clique sur **+ Ajouter**.
 3. Cherche un aliment par son nom (ex. « carotte crue », « donut ») ou saisis son code-barres (les chiffres sous le code-barres de l'emballage). Les résultats arrivent en deux groupes :
    - **Aliments génériques (Ciqual, ANSES)** : valeurs moyennes officielles d'un type d'aliment (« Carotte, crue », « Riz blanc, cuit »). Idéal pour les aliments bruts et le fait maison.
    - **Produits de marque (Open Food Facts)** : produits de supermarché précis (une marque, un distributeur). Le code-barres cherche uniquement dans ce groupe.
 
    Les accents et majuscules n'ont pas d'importance, et tous les mots tapés doivent figurer dans le nom (« poulet cuit »).
-4. Choisis un résultat, indique la quantité en grammes : un aperçu des calories et des macros s'affiche.
+
+   **Fautes de frappe** : si rien n'est trouvé, le site corrige automatiquement (« carrote » → « carotte », « frommage » → « fromage ») et l'indique dans un bandeau jaune. Le lien **Chercher quand même** relance la recherche avec le mot tapé.
+
+   Chaque résultat a une **icône de sa famille** (légumes, fruits, viandes, poissons, œufs, laitages, céréales, sucré, boissons, plats, matières grasses, autre).
+4. Choisis un résultat, indique la quantité en grammes (ou clique sur 50, 100 ou 150 g) : un aperçu des calories et des macros s'affiche.
 5. Clique sur **Ajouter au journal**.
 
-Le résumé du jour affiche les calories consommées par rapport à l'objectif, une barre de progression, les macros en grammes et en pourcentage, et l'eau bue (boutons −250 / +250 ml). La croix ✕ supprime un aliment.
+Le résumé du jour affiche les calories consommées par rapport à l'objectif, ce qui reste (ou le dépassement), une barre de progression, les macros en grammes et en pourcentage, et l'eau bue (boutons −250 / +250 ml). Chaque aliment du journal garde son icône, sa quantité et sa source (Ciqual ou la marque). La croix supprime un aliment.
 
 ```mermaid
 sequenceDiagram

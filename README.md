@@ -14,6 +14,7 @@ Projet réalisé dans le cadre du cours de programmation Web (Master Numérique,
 | `index3.html` | Version 4 : recettes protéinées en français, nutrition calculée, mode Spoonacular |
 | `index4.html` | Version 5 : journal avec historique et graphique sur 7 jours, calcul des besoins caloriques |
 | `index5.html` | Version 6 : recherche d'aliments dans la table Ciqual (ANSES) et Open Food Facts |
+| `index6.html` | Version 7 : icônes par famille d'aliments, recherche tolérante aux fautes, graphisme retouché |
 | `aliments.json` | Table Ciqual 2025 convertie (aliments génériques, valeurs pour 100 g) |
 | `recettes.json` | Données de la V4 : tableau d'ingrédients et recettes |
 | `grist-widget.html` | Test d'une vue personnalisée Grist (le test demandé a été fait avec le Custom Widget Builder dans Grist) |
@@ -44,7 +45,11 @@ Suivre ce qu'on mange est fastidieux : il faut chercher les valeurs nutritionnel
 | V4 | Recettes protéinées en français, nutrition calculée, Spoonacular (livrée) |
 | V5 | Historique et graphique des calories sur 7 jours, calcul des besoins caloriques (livrée) |
 | V6 | Recherche d'aliments dans la table Ciqual de l'ANSES en plus d'Open Food Facts (livrée) |
-| Suite | Scan de code-barres avec la caméra, plus de recettes françaises, valeurs de `recettes.json` vérifiées avec Ciqual, FatSecret via un serveur relais |
+| V7 | Icônes par famille d'aliments, tolérance aux fautes de frappe, graphisme retouché (livrée) |
+| V8 | Mode recette guidé à la voix (lecture des étapes, commandes « suivant », « précédent », « répète », « stop ») |
+| V9 | Scan de code-barres avec la caméra |
+| V10 | Carte conceptuelle et/ou roue des émotions pour choisir une recette |
+| Suite | Plus de recettes françaises, valeurs de `recettes.json` vérifiées avec Ciqual, FatSecret via un serveur relais |
 | Piste | Veille automatique de recettes populaires (tâche planifiée qui met à jour un fichier JSON après relecture humaine) |
 
 ## Choix techniques

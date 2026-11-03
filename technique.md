@@ -9,7 +9,7 @@ Le site est **statique** : des fichiers HTML (avec leur CSS et leur JavaScript i
 ```mermaid
 flowchart LR
     subgraph GH["GitHub Pages (fichiers statiques)"]
-        H["index0.html à index5.html"]
+        H["index0.html à index6.html"]
         R["recettes.json"]
         A["aliments.json<br/>table Ciqual"]
     end
@@ -49,6 +49,7 @@ Hors du site, deux scripts Python locaux préparent des données, sans jamais ê
 | `index3.html` | V4 : recettes protéinées en français + mode Spoonacular |
 | `index4.html` | V5 : journal + historique 7 jours + calcul des besoins |
 | `index5.html` | V6 : V5 + recherche dans la table Ciqual |
+| `index6.html` | V7 : V6 + icônes, tolérance aux fautes, graphisme retouché |
 | `recettes.json` | Ingrédients (valeurs pour 100 g) et recettes de la V4 |
 | `aliments.json` | Table Ciqual 2025 convertie : environ 3 300 aliments génériques (valeurs pour 100 g) |
 | `grist-widget.html` | Vue personnalisée Grist chargée par URL (test du cours) |
@@ -58,9 +59,9 @@ Hors du site, deux scripts Python locaux préparent des données, sans jamais ê
 
 Règle du projet : une nouvelle version = un nouveau fichier `indexN.html` ; les versions précédentes ne sont jamais modifiées.
 
-## Organisation de `index4.html` (V5) et `index5.html` (V6)
+## Organisation de `index4.html` (V5) à `index6.html` (V7)
 
-La V6 reprend la V5 à l'identique, sauf la recherche d'aliments (voir plus bas). La page fonctionne avec quatre onglets (des `<section>` affichées ou masquées par `showTab()`).
+La V6 reprend la V5 à l'identique, sauf la recherche d'aliments. La V7 reprend la V6 et ajoute les icônes, la correction des fautes et un nouveau style (voir plus bas). La page fonctionne avec quatre onglets (des `<section>` affichées ou masquées par `showTab()`).
 
 ```mermaid
 flowchart TD
@@ -84,6 +85,9 @@ flowchart TD
 | `calc(produit, grammes)` | Calcule kcal et macros à partir des valeurs pour 100 g d'Open Food Facts |
 | `search()` / `byCode()` | Recherche d'un aliment par nom ou par code-barres |
 | `chargerCiqual()` / `chercherCiqual(q)` | V6 : charge `aliments.json` au premier besoin et y cherche les aliments |
+| `familleDe(aliment)` / `icone(famille)` | V7 : trouve la famille d'un aliment et renvoie son icône SVG |
+| `corriger(q)` / `distance(a, b)` | V7 : corrige les fautes de frappe à partir des mots de la table Ciqual |
+| `majJour()` / `decaler(n)` | V7 : flèches jour précédent / suivant |
 | `renderHistory()` | Calcule et affiche le résumé, le graphique et le tableau des 7 jours |
 | `dayTotals(clé)` | Totaux d'un jour, **sans créer d'entrée vide** dans le journal |
 | `isoDate(date)` | Date locale au format `AAAA-MM-JJ`, le format des clés du journal |
@@ -122,6 +126,8 @@ erDiagram
         float p "protéines g"
         float c "glucides g"
         float f "lipides g"
+        string fam "famille, V7"
+        string src "Ciqual ou marque, V7"
     }
 ```
 
@@ -178,6 +184,31 @@ flowchart TD
 ```
 
 - Conversion des valeurs Ciqual par le script : « traces » → 0, « < x » → x / 2, « - » → inconnu ; protéines « N × facteur de Jones », sinon « N × 6,25 » ; les aliments sans énergie sont ignorés.
+
+### Icônes par famille (V7)
+
+Douze familles (`legumes`, `fruits`, `viandes`, `poissons`, `oeufs`, `laitages`, `cereales`, `sucre`, `boissons`, `plats`, `matieres`, `autre`), chacune avec un tracé SVG et deux couleurs (`FAMILLES`). La famille est trouvée par mots-clés (`REGLES`, testées dans l'ordre) :
+
+```mermaid
+flowchart TD
+    A["Aliment"] --> S{"Source ?"}
+    S -->|"Ciqual"| G["Sous-groupe Ciqual<br/>ex. « viandes cuites »"]
+    S -->|"Open Food Facts"| C["Catégories, de la plus précise<br/>à la plus générale<br/>ex. en:carrots, en:vegetables"]
+    S -->|"Entrée ancienne du journal"| N["Nom de l'aliment"]
+    G --> R["Mots-clés REGLES<br/>testés dans l'ordre"]
+    C --> R
+    N --> R
+    R -->|"trouvé"| F["Famille → icône"]
+    R -->|"rien"| O["Famille « autre »"]
+```
+
+La famille (`fam`) et la source (`src`) sont enregistrées avec chaque nouvel aliment du journal ; les anciennes entrées sont devinées par leur nom.
+
+### Fautes de frappe (V7)
+
+- Seulement si Ciqual ne trouve rien : chaque mot inconnu (4 lettres ou plus, qui n'est pas le début d'un mot connu) est remplacé par le mot le plus proche du vocabulaire de la table Ciqual.
+- Proximité mesurée par la distance de Damerau-Levenshtein (lettres ajoutées, supprimées, remplacées ou inversées) : 1 faute jusqu'à 6 lettres, 2 au-delà ; à égalité, le mot le plus fréquent gagne.
+- Le texte corrigé est aussi envoyé à Open Food Facts. Le bouton « Chercher quand même » relance avec le texte tapé (`search(true)`).
 
 ### Historique sur 7 jours
 
