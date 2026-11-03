@@ -12,8 +12,15 @@ Projet réalisé dans le cadre du cours de programmation Web (Master Numérique,
 | `index1.html` | Version 2 : favoris et recommandations personnalisées |
 | `index2.html` | Version 3 : journal alimentaire (fonction principale) et idées de repas |
 | `index3.html` | Version 4 : recettes protéinées en français, nutrition calculée, mode Spoonacular |
+| `index4.html` | Version 5 : journal avec historique et graphique sur 7 jours, calcul des besoins caloriques |
 | `recettes.json` | Données de la V4 : tableau d'ingrédients et recettes |
 | `grist-widget.html` | Test d'une vue personnalisée Grist (le test demandé a été fait avec le Custom Widget Builder dans Grist) |
+
+## Documentation
+- [Accueil de la documentation](accueil.md) : présentation, versions, plan du site
+- [Guide utilisateur](utilisateur.md)
+- [Documentation technique](technique.md) : architecture, données, calculs
+- [Installation](installation.md) : lancer le site en local, publier, script des vidéos
 
 ## Problème
 Suivre ce qu'on mange est fastidieux : il faut chercher les valeurs nutritionnelles de chaque aliment et faire les additions. Le site automatise la recherche des aliments, le calcul des calories et des macros, et la comparaison avec un objectif quotidien.
@@ -33,7 +40,8 @@ Suivre ce qu'on mange est fastidieux : il faut chercher les valeurs nutritionnel
 | V2 | Favoris et recommandations personnalisées (livrée) |
 | V3 | Journal alimentaire, calories et macros (livrée) |
 | V4 | Recettes protéinées en français, nutrition calculée, Spoonacular (livrée) |
-| V5 | Scan de code-barres avec la caméra, historique et graphiques, calcul des besoins, plus de recettes |
+| V5 | Historique et graphique des calories sur 7 jours, calcul des besoins caloriques (livrée) |
+| Suite | Scan de code-barres avec la caméra, plus de recettes françaises, valeurs vérifiées avec Ciqual |
 | Piste | Veille automatique de recettes populaires (tâche planifiée qui met à jour un fichier JSON après relecture humaine) |
 
 ## Choix techniques
