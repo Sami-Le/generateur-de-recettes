@@ -104,11 +104,53 @@ Quand l'ANSES publie une nouvelle version de la table :
 
 4. Le script affiche le nombre d'aliments écrits dans `aliments.json`. Vérifier quelques valeurs dans le site, puis commiter `aliments.json`. Le fichier Excel lui-même n'a pas besoin d'être dans le dépôt.
 
+### 7. Générer la voix des recettes (`audio/`)
+
+Le mode Cuisiner lit les recettes avec des fichiers MP3 générés par Piper. À refaire après avoir ajouté ou modifié une recette (sinon le site utilise la voix du navigateur pour les textes changés).
+
+**Sur GitHub, sans terminal (méthode conseillée)** : le fichier `.github/workflows/voix.yml` fait tout sur les serveurs de GitHub (GitHub Actions). Il se lance automatiquement quand `recettes.json` ou le script changent. Pour le lancer à la main : onglet **Actions** du dépôt → **Générer la voix des recettes** → **Run workflow**, en indiquant la voix (ex. `fr_FR-siwis-medium`) et la vitesse, ou en laissant vide pour garder les réglages actuels ; changer de voix ou de vitesse régénère tous les fichiers. Il installe Piper, télécharge la voix, génère les MP3 et enregistre le dossier `audio/` dans le dépôt.
+
+```mermaid
+flowchart LR
+    A["Modification de recettes.json<br/>ou Run workflow"] --> B["GitHub Actions<br/>installe Piper et la voix"]
+    B --> C["generer_audio.py"]
+    C --> D["Commit automatique<br/>du dossier audio/"]
+    D --> E["GitHub Pages<br/>republie le site"]
+```
+
+**Sur son ordinateur (alternative)** :
+
+1. Installer Piper et l'encodeur MP3 (Python 3.9 ou plus) :
+
+   ```bash
+   pip install piper-tts lameenc
+   ```
+
+2. Télécharger la voix française (environ 60 Mo, une seule fois) dans `scripts/voix/`, qui n'est pas envoyé sur GitHub :
+
+   ```bash
+   python -m piper.download_voices fr_FR-siwis-medium --download-dir scripts/voix
+   ```
+
+3. Depuis la racine du dépôt :
+
+   ```bash
+   python scripts/generer_audio.py
+   ```
+
+   Options : `--vitesse 1.1` pour une voix plus lente, `--tout` pour tout régénérer.
+
+4. Écouter le résultat en local (`python -m http.server`, onglet Cuisiner), puis commiter le dossier `audio/`.
+
 ## Problèmes courants
 
 | Symptôme | Cause probable | Solution |
 |---|---|---|
 | `index3.html` n'affiche aucune recette, ou `index5.html` affiche « La table Ciqual n'a pas pu être chargée » | Fichier ouvert par double-clic | Passer par `python -m http.server` |
+| L'action « Générer la voix des recettes » échoue à l'étape « Enregistrer les fichiers dans le dépôt » | Droits d'écriture des actions désactivés | Settings → Actions → General → Workflow permissions : « Read and write permissions » |
+| L'action échoue à l'étape « Télécharger la voix » | Nom de voix inexistant | Vérifier le nom exact (ex. `fr_FR-siwis-medium`) et relancer |
+| `generer_audio.py` affiche « Modèle introuvable » | Voix pas encore téléchargée | Refaire l'étape 7.2 depuis la racine du dépôt |
+| `pip install piper-tts` échoue | Version de Python trop ancienne ou non prise en charge | Installer Python 3.11 à 3.13 depuis python.org et réessayer |
 | Le script Ciqual affiche « Colonne introuvable » | L'ANSES a renommé une colonne | Le script liste les en-têtes lus : ajouter le nouveau libellé dans `COLONNES` |
 | Le site en ligne ne montre pas la dernière modification | Publication en cours ou cache du navigateur | Attendre 1 à 2 minutes, puis recharger avec `Ctrl + F5` |
 | « Erreur de connexion à Open Food Facts » | API indisponible ou hors ligne | Réessayer plus tard |

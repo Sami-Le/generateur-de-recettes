@@ -16,6 +16,8 @@ Projet réalisé dans le cadre du cours de programmation Web (Master Numérique,
 | `index5.html` | Version 6 : recherche d'aliments dans la table Ciqual (ANSES) et Open Food Facts |
 | `index6.html` | Version 7 : icônes par famille d'aliments, recherche tolérante aux fautes, graphisme retouché |
 | `index7.html` | Version 8 : onglet Cuisiner, recettes guidées pas à pas à la voix |
+| `index8.html` | Version 9 : même voix sur tous les appareils (fichiers audio générés avec Piper) |
+| `audio/` | Voix des recettes en MP3, générée par `scripts/generer_audio.py` (automatiquement par GitHub Actions, `.github/workflows/voix.yml`) |
 | `aliments.json` | Table Ciqual 2025 convertie (aliments génériques, valeurs pour 100 g) |
 | `recettes.json` | Données de la V4 : tableau d'ingrédients et recettes |
 | `grist-widget.html` | Test d'une vue personnalisée Grist (le test demandé a été fait avec le Custom Widget Builder dans Grist) |
@@ -48,8 +50,9 @@ Suivre ce qu'on mange est fastidieux : il faut chercher les valeurs nutritionnel
 | V6 | Recherche d'aliments dans la table Ciqual de l'ANSES en plus d'Open Food Facts (livrée) |
 | V7 | Icônes par famille d'aliments, tolérance aux fautes de frappe, graphisme retouché (livrée) |
 | V8 | Mode recette guidé à la voix : lecture des étapes, commandes « suivant », « précédent », « répète », « stop » (livrée) |
-| V9 | Scan de code-barres avec la caméra |
-| V10 | Carte conceptuelle et/ou roue des émotions pour choisir une recette |
+| V9 | Même voix sur tous les appareils : fichiers audio générés avec Piper (livrée) |
+| V10 | Scan de code-barres avec la caméra |
+| V11 | Carte conceptuelle et/ou roue des émotions pour choisir une recette |
 | Suite | Plus de recettes françaises, valeurs de `recettes.json` vérifiées avec Ciqual, FatSecret via un serveur relais |
 | Piste | Veille automatique de recettes populaires (tâche planifiée qui met à jour un fichier JSON après relecture humaine) |
 
@@ -64,6 +67,7 @@ Suivre ce qu'on mange est fastidieux : il faut chercher les valeurs nutritionnel
 | Recettes en anglais | API TheMealDB (V1 à V3), API Spoonacular (V4) |
 | Données utilisateur | localStorage |
 | Voix (V8) | Web Speech API du navigateur : synthèse et reconnaissance vocales |
+| Voix identique partout (V9) | Piper (voix choisie au lancement, par défaut fr_FR-siwis-medium, CC BY 4.0), fichiers MP3 générés par GitHub Actions ou en local |
 | Données tabulaires | Grist (vue personnalisée) |
 
 ## Limites connues

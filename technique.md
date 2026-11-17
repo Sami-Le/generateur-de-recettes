@@ -9,9 +9,10 @@ Le site est **statique** : des fichiers HTML (avec leur CSS et leur JavaScript i
 ```mermaid
 flowchart LR
     subgraph GH["GitHub Pages (fichiers statiques)"]
-        H["index0.html à index7.html"]
+        H["index0.html à index8.html"]
         R["recettes.json"]
         A["aliments.json<br/>table Ciqual"]
+        V["audio/<br/>voix des recettes (MP3)"]
     end
     subgraph NAV["Navigateur de l'utilisateur"]
         JS["JavaScript de la page"]
@@ -26,6 +27,7 @@ flowchart LR
     H -->|"téléchargement"| JS
     R -->|"fetch (V4, V8)"| JS
     A -->|"fetch (V6)"| JS
+    V -->|"fetch, Audio (V9)"| JS
     JS <--> LS
     JS -->|"fetch"| OFF
     JS -->|"fetch"| MDB
@@ -36,7 +38,8 @@ flowchart LR
 Hors du site, deux scripts Python locaux préparent des données, sans jamais être exécutés par le site :
 
 - `scripts/trouver_videos.py` interroge l'API YouTube Data pour ajouter une vidéo et une miniature à chaque recette de `recettes.json` ;
-- `scripts/ciqual_vers_json.py` convertit la table Ciqual de l'ANSES (fichier Excel) en `aliments.json`.
+- `scripts/ciqual_vers_json.py` convertit la table Ciqual de l'ANSES (fichier Excel) en `aliments.json` ;
+- `scripts/generer_audio.py` lit les textes des recettes avec la voix Piper et les enregistre en MP3 dans `audio/`.
 
 ## Fichiers du dépôt
 
@@ -51,11 +54,15 @@ Hors du site, deux scripts Python locaux préparent des données, sans jamais ê
 | `index5.html` | V6 : V5 + recherche dans la table Ciqual |
 | `index6.html` | V7 : V6 + icônes, tolérance aux fautes, graphisme retouché |
 | `index7.html` | V8 : V7 + onglet Cuisiner guidé à la voix |
+| `index8.html` | V9 : V8 + même voix partout (fichiers audio Piper) |
 | `recettes.json` | Ingrédients (valeurs pour 100 g) et recettes de la V4 |
 | `aliments.json` | Table Ciqual 2025 convertie : environ 3 300 aliments génériques (valeurs pour 100 g) |
 | `grist-widget.html` | Vue personnalisée Grist chargée par URL (test du cours) |
 | `scripts/trouver_videos.py` | Script local de remplissage des vidéos YouTube |
 | `scripts/ciqual_vers_json.py` | Script local de conversion de la table Ciqual |
+| `scripts/generer_audio.py` | Script qui génère la voix des recettes avec Piper |
+| `.github/workflows/voix.yml` | Workflow GitHub Actions qui lance ce script sur les serveurs de GitHub |
+| `audio/` | Fichiers MP3 des recettes et `voix.json` (lien texte → fichier, crédit de la voix) |
 | `accueil.md`, `utilisateur.md`, `technique.md`, `installation.md` | Documentation |
 
 Règle du projet : une nouvelle version = un nouveau fichier `indexN.html` ; les versions précédentes ne sont jamais modifiées.
@@ -91,7 +98,8 @@ flowchart TD
 | `majJour()` / `decaler(n)` | V7 : flèches jour précédent / suivant |
 | `chargerRecettes()` / `parPortion(r)` | V8 : charge `recettes.json` et calcule la nutrition d'une portion |
 | `ouvrirGuide(i)` / `aller(n)` / `fermerGuide()` | V8 : mode cuisine, une étape à la fois |
-| `dire(texte)` | V8 : lecture à voix haute (synthèse vocale du navigateur) |
+| `dire(texte)` | V8 : lecture à voix haute (synthèse vocale du navigateur) ; V9 : joue d'abord le fichier MP3 du texte s'il existe |
+| `clipPour(texte)` / `taire()` / `parle()` | V9 : fichier audio d'un texte, arrêt de la voix, voix en cours |
 | `demarrerEcoute()` / `commande(texte)` | V8 : reconnaissance vocale et commandes |
 | `renderHistory()` | Calcule et affiche le résumé, le graphique et le tableau des 7 jours |
 | `dayTotals(clé)` | Totaux d'un jour, **sans créer d'entrée vide** dans le journal |
@@ -246,6 +254,29 @@ sequenceDiagram
 - Chrome arrête l'écoute après un silence : `onend` la relance tant que les commandes vocales sont actives.
 - `navigator.wakeLock` garde l'écran allumé pendant la recette quand le navigateur le permet.
 - Le micro n'est autorisé que sur une page sécurisée : GitHub Pages (https) ou `localhost`.
+
+### Même voix sur tous les appareils (V9)
+
+La synthèse vocale du navigateur ne peut utiliser que les voix installées sur l'appareil. Pour avoir la même voix partout, les textes fixes des recettes sont lus **une fois**, sur l'ordinateur du développeur, par **Piper** (moteur de synthèse vocale libre, sans clé ni serveur), puis enregistrés en MP3.
+
+```mermaid
+flowchart LR
+    R["recettes.json"] --> S["scripts/generer_audio.py<br/>(GitHub Actions ou ordinateur)"]
+    M["Voix Piper<br/>fr_FR-siwis-medium.onnx"] --> S
+    S --> F["audio/&lt;recette&gt;/0.mp3, 1.mp3…"]
+    S --> J["audio/voix.json<br/>texte → fichier, crédit"]
+    F --> P["index8.html"]
+    J --> P
+    P -->|"texte identique"| A["Lecture du MP3"]
+    P -->|"pas de fichier ou texte changé"| B["Voix du navigateur"]
+```
+
+- Le script construit les mêmes textes que la page (ingrédients, « Étape k sur n. … », fin). La page n'utilise un fichier que si son texte est exactement celui à lire : une recette modifiée sans relancer le script reste lue par la voix du navigateur.
+- MP3 mono à 48 kbit/s (encodeur `lameenc`), environ 6 Ko par seconde de parole. Seuls les textes changés sont régénérés.
+- Voix `fr_FR-siwis-medium` : entraînée sur la SIWIS French Speech Synthesis Database, licence CC BY 4.0 ; le crédit est enregistré dans `voix.json` et affiché dans le mode cuisine.
+- Le modèle de voix (environ 60 Mo, dans `scripts/voix/`) n'est pas mis dans le dépôt (`.gitignore`).
+- Le script peut tourner sur GitHub (workflow `.github/workflows/voix.yml`, lancé à la main depuis l'onglet Actions ou automatiquement quand `recettes.json` change) : il télécharge la voix, génère les MP3 et les enregistre dans le dépôt par un commit automatique.
+- La commande « stop » met le fichier en pause ; pendant la lecture d'un fichier, seule « stop » est écoutée, comme avec la voix du navigateur.
 
 ### Historique sur 7 jours
 

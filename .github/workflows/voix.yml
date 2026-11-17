@@ -1,0 +1,78 @@
+# Génère la voix des recettes (fichiers MP3 dans audio/) avec Piper, sur les serveurs de GitHub.
+# Se lance tout seul quand recettes.json ou le script changent, ou à la main :
+# onglet Actions du dépôt → « Générer la voix des recettes » → Run workflow.
+name: Générer la voix des recettes
+
+on:
+  workflow_dispatch:
+    inputs:
+      voix:
+        description: "Voix Piper (ex. fr_FR-siwis-medium). Vide = garder la voix actuelle."
+        required: false
+        default: ""
+      vitesse:
+        description: "Vitesse (1.0 normal, plus grand = plus lent). Vide = garder la vitesse actuelle."
+        required: false
+        default: ""
+  push:
+    branches: [main]
+    paths:
+      - "recettes.json"
+      - "scripts/generer_audio.py"
+
+permissions:
+  contents: write   # pour enregistrer le dossier audio/ dans le dépôt
+
+jobs:
+  voix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@v4
+
+      - name: Installer Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Installer Piper et l'encodeur MP3
+        run: pip install piper-tts lameenc
+
+      - name: Choisir la voix et la vitesse
+        id: reglages
+        env:
+          VOIX: ${{ inputs.voix }}
+          VITESSE: ${{ inputs.vitesse }}
+        run: |
+          # Valeurs vides : on reprend celles de audio/voix.json, sinon fr_FR-siwis-medium à vitesse 1.0
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os, re, sys
+          m = {}
+          if os.path.exists("audio/voix.json"):
+              m = json.load(open("audio/voix.json", encoding="utf-8"))
+          voix = os.environ.get("VOIX", "").strip() or m.get("voix") or "fr_FR-siwis-medium"
+          vitesse = os.environ.get("VITESSE", "").strip().replace(",", ".") or str(m.get("vitesse") or 1.0)
+          if not re.fullmatch(r"[a-z]{2}_[A-Z]{2}-[A-Za-z0-9_]+-(x_low|low|medium|high)", voix):
+              sys.exit(f"Nom de voix invalide : {voix}")
+          float(vitesse)
+          print(f"voix={voix}")
+          print(f"vitesse={vitesse}")
+          PY
+
+      - name: Télécharger la voix
+        run: python -m piper.download_voices "${{ steps.reglages.outputs.voix }}" --download-dir scripts/voix
+
+      - name: Générer les fichiers audio
+        run: python scripts/generer_audio.py --modele "scripts/voix/${{ steps.reglages.outputs.voix }}.onnx" --vitesse "${{ steps.reglages.outputs.vitesse }}"
+
+      - name: Enregistrer les fichiers audio dans le dépôt
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add audio
+          if git diff --cached --quiet; then
+            echo "Aucun changement dans audio/."
+          else
+            git commit -m "Voix des recettes générée avec Piper (${{ steps.reglages.outputs.voix }})"
+            git push
+          fi

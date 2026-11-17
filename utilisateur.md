@@ -1,6 +1,6 @@
 # Guide utilisateur
 
-Ce guide explique comment utiliser la version actuelle du site (V8, `index7.html`) et la page des recettes protéinées (`index3.html`).
+Ce guide explique comment utiliser la version actuelle du site (V9, `index8.html`) et la page des recettes protéinées (`index3.html`).
 
 Retour à l'[accueil de la documentation](accueil.md).
 
@@ -104,6 +104,8 @@ Onglet **Historique** :
 ## 4. Cuisiner une recette pas à pas, à la voix
 
 Onglet **Cuisiner** : choisis une des recettes protéinées et clique sur **Cuisiner**. La recette s'affiche en grand, une étape à la fois, et le site la lit à voix haute : les ingrédients d'abord, puis chaque étape.
+
+Depuis la V9, la voix est la même sur tous les appareils (voix Piper enregistrée dans des fichiers audio) ; la voix utilisée est indiquée en bas de l'écran. Si un texte n'a pas de fichier audio, le site utilise la voix du navigateur.
 
 - **Sans les mains** : clique une fois sur **Activer les commandes vocales** et autorise le micro. Dis ensuite :
 
