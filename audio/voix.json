@@ -1,0 +1,255 @@
+{
+ "voix": "fr_FR-siwis-medium",
+ "vitesse": 1.0,
+ "credit": "Voix Piper fr_FR-siwis-medium, entraînée sur la SIWIS French Speech Synthesis Database (CC BY 4.0)",
+ "recettes": {
+  "bowl_poulet_riz": [
+   {
+    "texte": "Bowl poulet, riz et brocoli. Ingrédients : 150 grammes de blanc de poulet cru, 70 grammes de riz cru, 100 grammes de brocoli, 5 grammes d'huile d'olive. Dis « suivant » quand tu es prêt.",
+    "fichier": "audio/bowl_poulet_riz/0.mp3"
+   },
+   {
+    "texte": "Étape 1 sur 4. Cuire le riz selon le paquet.",
+    "fichier": "audio/bowl_poulet_riz/1.mp3"
+   },
+   {
+    "texte": "Étape 2 sur 4. Couper le poulet en dés et le faire dorer à la poêle avec l'huile.",
+    "fichier": "audio/bowl_poulet_riz/2.mp3"
+   },
+   {
+    "texte": "Étape 3 sur 4. Cuire le brocoli à la vapeur 5 minutes.",
+    "fichier": "audio/bowl_poulet_riz/3.mp3"
+   },
+   {
+    "texte": "Étape 4 sur 4. Assembler dans un bol et assaisonner.",
+    "fichier": "audio/bowl_poulet_riz/4.mp3"
+   },
+   {
+    "texte": "C'est prêt. Bon appétit ! Tu peux ajouter une portion à ton journal.",
+    "fichier": "audio/bowl_poulet_riz/5.mp3"
+   }
+  ],
+  "pates_thon_tomate": [
+   {
+    "texte": "Pâtes complètes au thon et à la tomate. Ingrédients : 80 grammes de pâtes complètes crues, 100 grammes de thon au naturel égoutté, 150 grammes de tomate, 40 grammes d'oignon, 5 grammes d'huile d'olive. Dis « suivant » quand tu es prêt.",
+    "fichier": "audio/pates_thon_tomate/0.mp3"
+   },
+   {
+    "texte": "Étape 1 sur 3. Cuire les pâtes.",
+    "fichier": "audio/pates_thon_tomate/1.mp3"
+   },
+   {
+    "texte": "Étape 2 sur 3. Faire revenir l'oignon dans l'huile, ajouter la tomate coupée et cuire 8 minutes.",
+    "fichier": "audio/pates_thon_tomate/2.mp3"
+   },
+   {
+    "texte": "Étape 3 sur 3. Ajouter le thon émietté, puis les pâtes égouttées.",
+    "fichier": "audio/pates_thon_tomate/3.mp3"
+   },
+   {
+    "texte": "C'est prêt. Bon appétit ! Tu peux ajouter une portion à ton journal.",
+    "fichier": "audio/pates_thon_tomate/4.mp3"
+   }
+  ],
+  "curry_lentilles_corail": [
+   {
+    "texte": "Curry de lentilles corail. Ingrédients : 160 grammes de lentilles corail crues, 300 grammes de tomate, 100 grammes d'oignon, 10 grammes d'huile d'olive. Dis « suivant » quand tu es prêt.",
+    "fichier": "audio/curry_lentilles_corail/0.mp3"
+   },
+   {
+    "texte": "Étape 1 sur 3. Faire revenir l'oignon dans l'huile.",
+    "fichier": "audio/curry_lentilles_corail/1.mp3"
+   },
+   {
+    "texte": "Étape 2 sur 3. Ajouter la tomate, les lentilles rincées et 400 ml d'eau.",
+    "fichier": "audio/curry_lentilles_corail/2.mp3"
+   },
+   {
+    "texte": "Étape 3 sur 3. Cuire 15 à 20 minutes en remuant, assaisonner avec du curry.",
+    "fichier": "audio/curry_lentilles_corail/3.mp3"
+   },
+   {
+    "texte": "C'est prêt. Bon appétit ! Tu peux ajouter une portion à ton journal.",
+    "fichier": "audio/curry_lentilles_corail/4.mp3"
+   }
+  ],
+  "saumon_patate_douce": [
+   {
+    "texte": "Saumon, patate douce et brocoli. Ingrédients : 150 grammes de saumon cru, 200 grammes de patate douce, 100 grammes de brocoli. Dis « suivant » quand tu es prêt.",
+    "fichier": "audio/saumon_patate_douce/0.mp3"
+   },
+   {
+    "texte": "Étape 1 sur 3. Couper la patate douce en cubes et l'enfourner 25 minutes à 200 °C.",
+    "fichier": "audio/saumon_patate_douce/1.mp3"
+   },
+   {
+    "texte": "Étape 2 sur 3. Ajouter le saumon sur la plaque pour les 12 dernières minutes.",
+    "fichier": "audio/saumon_patate_douce/2.mp3"
+   },
+   {
+    "texte": "Étape 3 sur 3. Cuire le brocoli à la vapeur et servir.",
+    "fichier": "audio/saumon_patate_douce/3.mp3"
+   },
+   {
+    "texte": "C'est prêt. Bon appétit ! Tu peux ajouter une portion à ton journal.",
+    "fichier": "audio/saumon_patate_douce/4.mp3"
+   }
+  ],
+  "porridge_proteine": [
+   {
+    "texte": "Porridge protéiné banane et cacahuète. Ingrédients : 50 grammes de flocons d'avoine, 200 grammes de lait demi-écrémé, 25 grammes de protéine en poudre (whey), 80 grammes de banane, 10 grammes de beurre de cacahuète. Dis « suivant » quand tu es prêt.",
+    "fichier": "audio/porridge_proteine/0.mp3"
+   },
+   {
+    "texte": "Étape 1 sur 3. Chauffer les flocons avec le lait 4 minutes.",
+    "fichier": "audio/porridge_proteine/1.mp3"
+   },
+   {
+    "texte": "Étape 2 sur 3. Hors du feu, mélanger la whey.",
+    "fichier": "audio/porridge_proteine/2.mp3"
+   },
+   {
+    "texte": "Étape 3 sur 3. Ajouter la banane en rondelles et le beurre de cacahuète.",
+    "fichier": "audio/porridge_proteine/3.mp3"
+   },
+   {
+    "texte": "C'est prêt. Bon appétit ! Tu peux ajouter une portion à ton journal.",
+    "fichier": "audio/porridge_proteine/4.mp3"
+   }
+  ],
+  "skyr_fraises_miel": [
+   {
+    "texte": "Skyr, fraises et miel. Ingrédients : 200 grammes de skyr nature, 100 grammes de fraises, 10 grammes de miel. Dis « suivant » quand tu es prêt.",
+    "fichier": "audio/skyr_fraises_miel/0.mp3"
+   },
+   {
+    "texte": "Étape 1 sur 2. Verser le skyr dans un bol.",
+    "fichier": "audio/skyr_fraises_miel/1.mp3"
+   },
+   {
+    "texte": "Étape 2 sur 2. Ajouter les fraises coupées et un filet de miel.",
+    "fichier": "audio/skyr_fraises_miel/2.mp3"
+   },
+   {
+    "texte": "C'est prêt. Bon appétit ! Tu peux ajouter une portion à ton journal.",
+    "fichier": "audio/skyr_fraises_miel/3.mp3"
+   }
+  ],
+  "pancakes_banane_avoine": [
+   {
+    "texte": "Pancakes banane, avoine et œuf. Ingrédients : 50 grammes de flocons d'avoine, 100 grammes de banane, 55 grammes de œuf entier, 50 grammes de fromage blanc 0 %. Dis « suivant » quand tu es prêt.",
+    "fichier": "audio/pancakes_banane_avoine/0.mp3"
+   },
+   {
+    "texte": "Étape 1 sur 2. Mixer tous les ingrédients.",
+    "fichier": "audio/pancakes_banane_avoine/1.mp3"
+   },
+   {
+    "texte": "Étape 2 sur 2. Cuire des petites galettes à la poêle antiadhésive, 2 minutes par face.",
+    "fichier": "audio/pancakes_banane_avoine/2.mp3"
+   },
+   {
+    "texte": "C'est prêt. Bon appétit ! Tu peux ajouter une portion à ton journal.",
+    "fichier": "audio/pancakes_banane_avoine/3.mp3"
+   }
+  ],
+  "mousse_chocolat_fromage_blanc": [
+   {
+    "texte": "Mousse chocolat au fromage blanc. Ingrédients : 200 grammes de fromage blanc 0 %, 20 grammes de chocolat noir 70 %, 5 grammes de miel. Dis « suivant » quand tu es prêt.",
+    "fichier": "audio/mousse_chocolat_fromage_blanc/0.mp3"
+   },
+   {
+    "texte": "Étape 1 sur 3. Faire fondre le chocolat au micro-ondes.",
+    "fichier": "audio/mousse_chocolat_fromage_blanc/1.mp3"
+   },
+   {
+    "texte": "Étape 2 sur 3. Mélanger avec le fromage blanc et le miel.",
+    "fichier": "audio/mousse_chocolat_fromage_blanc/2.mp3"
+   },
+   {
+    "texte": "Étape 3 sur 3. Laisser reposer 30 minutes au frais.",
+    "fichier": "audio/mousse_chocolat_fromage_blanc/3.mp3"
+   },
+   {
+    "texte": "C'est prêt. Bon appétit ! Tu peux ajouter une portion à ton journal.",
+    "fichier": "audio/mousse_chocolat_fromage_blanc/4.mp3"
+   }
+  ],
+  "omelette_fromage_poivron": [
+   {
+    "texte": "Omelette au fromage et au poivron. Ingrédients : 165 grammes de œuf entier, 20 grammes de fromage râpé, 50 grammes de poivron, 3 grammes d'huile d'olive. Dis « suivant » quand tu es prêt.",
+    "fichier": "audio/omelette_fromage_poivron/0.mp3"
+   },
+   {
+    "texte": "Étape 1 sur 3. Faire revenir le poivron en dés dans l'huile.",
+    "fichier": "audio/omelette_fromage_poivron/1.mp3"
+   },
+   {
+    "texte": "Étape 2 sur 3. Verser les œufs battus, cuire à feu moyen.",
+    "fichier": "audio/omelette_fromage_poivron/2.mp3"
+   },
+   {
+    "texte": "Étape 3 sur 3. Ajouter le fromage et plier l'omelette.",
+    "fichier": "audio/omelette_fromage_poivron/3.mp3"
+   },
+   {
+    "texte": "C'est prêt. Bon appétit ! Tu peux ajouter une portion à ton journal.",
+    "fichier": "audio/omelette_fromage_poivron/4.mp3"
+   }
+  ],
+  "cottage_concombre_tomate": [
+   {
+    "texte": "Cottage cheese, concombre et tomate. Ingrédients : 150 grammes de cottage cheese, 80 grammes de concombre, 80 grammes de tomate. Dis « suivant » quand tu es prêt.",
+    "fichier": "audio/cottage_concombre_tomate/0.mp3"
+   },
+   {
+    "texte": "Étape 1 sur 2. Couper le concombre et la tomate en dés.",
+    "fichier": "audio/cottage_concombre_tomate/1.mp3"
+   },
+   {
+    "texte": "Étape 2 sur 2. Mélanger avec le cottage cheese, poivrer.",
+    "fichier": "audio/cottage_concombre_tomate/2.mp3"
+   },
+   {
+    "texte": "C'est prêt. Bon appétit ! Tu peux ajouter une portion à ton journal.",
+    "fichier": "audio/cottage_concombre_tomate/3.mp3"
+   }
+  ],
+  "tartine_thon_avocat": [
+   {
+    "texte": "Tartine thon et avocat. Ingrédients : 60 grammes de pain complet, 60 grammes de thon au naturel égoutté, 40 grammes d'avocat. Dis « suivant » quand tu es prêt.",
+    "fichier": "audio/tartine_thon_avocat/0.mp3"
+   },
+   {
+    "texte": "Étape 1 sur 2. Griller le pain.",
+    "fichier": "audio/tartine_thon_avocat/1.mp3"
+   },
+   {
+    "texte": "Étape 2 sur 2. Écraser l'avocat dessus, ajouter le thon émietté.",
+    "fichier": "audio/tartine_thon_avocat/2.mp3"
+   },
+   {
+    "texte": "C'est prêt. Bon appétit ! Tu peux ajouter une portion à ton journal.",
+    "fichier": "audio/tartine_thon_avocat/3.mp3"
+   }
+  ],
+  "pois_chiches_rotis": [
+   {
+    "texte": "Pois chiches rôtis. Ingrédients : 150 grammes de pois chiches cuits égouttés, 5 grammes d'huile d'olive. Dis « suivant » quand tu es prêt.",
+    "fichier": "audio/pois_chiches_rotis/0.mp3"
+   },
+   {
+    "texte": "Étape 1 sur 2. Sécher les pois chiches, les mélanger à l'huile et aux épices.",
+    "fichier": "audio/pois_chiches_rotis/1.mp3"
+   },
+   {
+    "texte": "Étape 2 sur 2. Enfourner 20 minutes à 200 °C jusqu'à ce qu'ils soient croustillants.",
+    "fichier": "audio/pois_chiches_rotis/2.mp3"
+   },
+   {
+    "texte": "C'est prêt. Bon appétit ! Tu peux ajouter une portion à ton journal.",
+    "fichier": "audio/pois_chiches_rotis/3.mp3"
+   }
+  ]
+ }
+}
