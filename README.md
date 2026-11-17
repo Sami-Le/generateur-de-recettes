@@ -15,6 +15,7 @@ Projet réalisé dans le cadre du cours de programmation Web (Master Numérique,
 | `index4.html` | Version 5 : journal avec historique et graphique sur 7 jours, calcul des besoins caloriques |
 | `index5.html` | Version 6 : recherche d'aliments dans la table Ciqual (ANSES) et Open Food Facts |
 | `index6.html` | Version 7 : icônes par famille d'aliments, recherche tolérante aux fautes, graphisme retouché |
+| `index7.html` | Version 8 : onglet Cuisiner, recettes guidées pas à pas à la voix |
 | `aliments.json` | Table Ciqual 2025 convertie (aliments génériques, valeurs pour 100 g) |
 | `recettes.json` | Données de la V4 : tableau d'ingrédients et recettes |
 | `grist-widget.html` | Test d'une vue personnalisée Grist (le test demandé a été fait avec le Custom Widget Builder dans Grist) |
@@ -46,7 +47,7 @@ Suivre ce qu'on mange est fastidieux : il faut chercher les valeurs nutritionnel
 | V5 | Historique et graphique des calories sur 7 jours, calcul des besoins caloriques (livrée) |
 | V6 | Recherche d'aliments dans la table Ciqual de l'ANSES en plus d'Open Food Facts (livrée) |
 | V7 | Icônes par famille d'aliments, tolérance aux fautes de frappe, graphisme retouché (livrée) |
-| V8 | Mode recette guidé à la voix (lecture des étapes, commandes « suivant », « précédent », « répète », « stop ») |
+| V8 | Mode recette guidé à la voix : lecture des étapes, commandes « suivant », « précédent », « répète », « stop » (livrée) |
 | V9 | Scan de code-barres avec la caméra |
 | V10 | Carte conceptuelle et/ou roue des émotions pour choisir une recette |
 | Suite | Plus de recettes françaises, valeurs de `recettes.json` vérifiées avec Ciqual, FatSecret via un serveur relais |
@@ -62,6 +63,7 @@ Suivre ce qu'on mange est fastidieux : il faut chercher les valeurs nutritionnel
 | Recettes françaises | Fichier `recettes.json` |
 | Recettes en anglais | API TheMealDB (V1 à V3), API Spoonacular (V4) |
 | Données utilisateur | localStorage |
+| Voix (V8) | Web Speech API du navigateur : synthèse et reconnaissance vocales |
 | Données tabulaires | Grist (vue personnalisée) |
 
 ## Limites connues

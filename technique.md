@@ -9,7 +9,7 @@ Le site est **statique** : des fichiers HTML (avec leur CSS et leur JavaScript i
 ```mermaid
 flowchart LR
     subgraph GH["GitHub Pages (fichiers statiques)"]
-        H["index0.html à index6.html"]
+        H["index0.html à index7.html"]
         R["recettes.json"]
         A["aliments.json<br/>table Ciqual"]
     end
@@ -24,7 +24,7 @@ flowchart LR
         YT["YouTube<br/>lecteur intégré"]
     end
     H -->|"téléchargement"| JS
-    R -->|"fetch (V4)"| JS
+    R -->|"fetch (V4, V8)"| JS
     A -->|"fetch (V6)"| JS
     JS <--> LS
     JS -->|"fetch"| OFF
@@ -50,6 +50,7 @@ Hors du site, deux scripts Python locaux préparent des données, sans jamais ê
 | `index4.html` | V5 : journal + historique 7 jours + calcul des besoins |
 | `index5.html` | V6 : V5 + recherche dans la table Ciqual |
 | `index6.html` | V7 : V6 + icônes, tolérance aux fautes, graphisme retouché |
+| `index7.html` | V8 : V7 + onglet Cuisiner guidé à la voix |
 | `recettes.json` | Ingrédients (valeurs pour 100 g) et recettes de la V4 |
 | `aliments.json` | Table Ciqual 2025 convertie : environ 3 300 aliments génériques (valeurs pour 100 g) |
 | `grist-widget.html` | Vue personnalisée Grist chargée par URL (test du cours) |
@@ -88,6 +89,10 @@ flowchart TD
 | `familleDe(aliment)` / `icone(famille)` | V7 : trouve la famille d'un aliment et renvoie son icône SVG |
 | `corriger(q)` / `distance(a, b)` | V7 : corrige les fautes de frappe à partir des mots de la table Ciqual |
 | `majJour()` / `decaler(n)` | V7 : flèches jour précédent / suivant |
+| `chargerRecettes()` / `parPortion(r)` | V8 : charge `recettes.json` et calcule la nutrition d'une portion |
+| `ouvrirGuide(i)` / `aller(n)` / `fermerGuide()` | V8 : mode cuisine, une étape à la fois |
+| `dire(texte)` | V8 : lecture à voix haute (synthèse vocale du navigateur) |
+| `demarrerEcoute()` / `commande(texte)` | V8 : reconnaissance vocale et commandes |
 | `renderHistory()` | Calcule et affiche le résumé, le graphique et le tableau des 7 jours |
 | `dayTotals(clé)` | Totaux d'un jour, **sans créer d'entrée vide** dans le journal |
 | `isoDate(date)` | Date locale au format `AAAA-MM-JJ`, le format des clés du journal |
@@ -210,6 +215,38 @@ La famille (`fam`) et la source (`src`) sont enregistrées avec chaque nouvel al
 - Proximité mesurée par la distance de Damerau-Levenshtein (lettres ajoutées, supprimées, remplacées ou inversées) : 1 faute jusqu'à 6 lettres, 2 au-delà ; à égalité, le mot le plus fréquent gagne.
 - Le texte corrigé est aussi envoyé à Open Food Facts. Le bouton « Chercher quand même » relance avec le texte tapé (`search(true)`).
 
+### Mode cuisine guidé à la voix (V8)
+
+Deux fonctions intégrées aux navigateurs, gratuites, sans clé ni serveur (Web Speech API) :
+
+- **Synthèse vocale** (`speechSynthesis`) : lit le texte de l'étape avec une voix française (`fr-FR`) si le système en a une.
+- **Reconnaissance vocale** (`SpeechRecognition`, préfixée `webkitSpeechRecognition` dans Chrome et Safari) : écoute en continu en français. Absente de Firefox, le bouton micro est alors masqué. Selon le navigateur, l'audio peut être envoyé au service de reconnaissance de l'éditeur (Google pour Chrome).
+
+```mermaid
+sequenceDiagram
+    actor U as Utilisateur
+    participant P as Page
+    participant TTS as Synthèse vocale
+    participant SR as Reconnaissance vocale
+    U->>P: Cuisiner (une recette)
+    P->>TTS: dire(ingrédients)
+    U->>P: Activer les commandes vocales
+    P->>SR: start() en continu, fr-FR
+    U->>SR: « suivant »
+    SR-->>P: onresult("suivant")
+    P->>P: commande() → aller(étape + 1)
+    P->>TTS: dire(« Étape 2 sur 4. … »)
+    SR-->>P: onend (silence)
+    P->>SR: start() à nouveau
+```
+
+- Le mode cuisine est une liste d'étapes : ingrédients, puis les étapes de `recettes.json`, puis une étape finale avec l'ajout d'une portion au journal (`fam` = `plats` ou `sucre`, `src` = `Recette`).
+- Les commandes sont reconnues par expressions régulières (`COMMANDES`) : « suivant », « précédent », « répète », « stop », « ingrédients », « ferme » et leurs variantes.
+- Pendant la lecture, seule la commande « stop » est acceptée, pour que le site ne réagisse pas à sa propre voix captée par le micro.
+- Chrome arrête l'écoute après un silence : `onend` la relance tant que les commandes vocales sont actives.
+- `navigator.wakeLock` garde l'écran allumé pendant la recette quand le navigateur le permet.
+- Le micro n'est autorisé que sur une page sécurisée : GitHub Pages (https) ou `localhost`.
+
 ### Historique sur 7 jours
 
 ```mermaid
@@ -266,4 +303,5 @@ Exemple : homme, 25 ans, 70 kg, 175 cm, activité modérée → MB = 1 674 kcal,
 - Données liées à un seul navigateur, sans compte ni synchronisation.
 - Valeurs des ingrédients de `recettes.json` approximatives, à vérifier avec la table Ciqual de l'ANSES.
 - Pas de scan de code-barres par la caméra (code saisi à la main).
+- Commandes vocales absentes de Firefox ; la reconnaissance dépend du navigateur et de la qualité du micro.
 - Aucun test automatique : les tests sont faits à la main dans le navigateur.

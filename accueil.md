@@ -24,7 +24,8 @@ Suivre ce qu'on mange est fastidieux : il faut chercher les valeurs nutritionnel
 
 ```mermaid
 flowchart TD
-    A["Accueil<br/>index.html"] --> V7["V7 actuelle<br/>index6.html"]
+    A["Accueil<br/>index.html"] --> V8["V8 actuelle<br/>index7.html"]
+    A --> V7["V7 Icônes et fautes<br/>index6.html"]
     A --> V6["V6 Ciqual<br/>index5.html"]
     A --> V5["V5 Historique et besoins<br/>index4.html"]
     A --> V4["V4 Recettes protéinées<br/>index3.html"]
@@ -33,11 +34,12 @@ flowchart TD
     A --> V1["V1 Recettes par ingrédients<br/>index0.html"]
     A --> G["Test Grist<br/>grist-widget.html"]
 
-    V7 --> J["Onglet Journal"]
-    V7 --> H["Onglet Historique"]
-    V7 --> I["Onglet Idées de repas"]
-    V7 --> P["Onglet Profil"]
-    V7 <-->|"lien et journal partagé"| V4
+    V8 --> J["Onglet Journal"]
+    V8 --> H["Onglet Historique"]
+    V8 --> C["Onglet Cuisiner<br/>mode guidé à la voix"]
+    V8 --> I["Onglet Idées de repas"]
+    V8 --> P["Onglet Profil"]
+    V8 <-->|"lien et journal partagé"| V4
 ```
 
 ## Évolution du projet
@@ -54,6 +56,7 @@ timeline
     V5 index4.html : Historique et graphique sur 7 jours : Calcul des besoins caloriques
     V6 index5.html : Recherche dans la table Ciqual (ANSES) : Aliments génériques et produits de marque
     V7 index6.html : Icônes par famille d'aliments : Tolérance aux fautes de frappe : Graphisme retouché
+    V8 index7.html : Recettes guidées pas à pas : Lecture à voix haute : Commandes vocales
 ```
 
 | Version | Fichier | Nouveautés |
@@ -65,6 +68,7 @@ timeline
 | V5 | `index4.html` | Onglet Historique (7 jours, graphique, tableau) et calcul des besoins caloriques dans le Profil |
 | V6 | `index5.html` | Recherche d'aliments dans la table Ciqual de l'ANSES (aliments génériques) en plus d'Open Food Facts (produits de marque) |
 | V7 | `index6.html` | Icônes par famille d'aliments, recherche tolérante aux fautes de frappe, boutons de quantité rapide, flèches de jour, graphisme retouché |
+| V8 | `index7.html` | Onglet Cuisiner : les recettes de `recettes.json` guidées pas à pas, lues à voix haute, avec commandes vocales (« suivant », « précédent », « répète », « stop ») |
 
 ## Technologies
 

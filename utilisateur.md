@@ -1,6 +1,6 @@
 # Guide utilisateur
 
-Ce guide explique comment utiliser la version actuelle du site (V7, `index6.html`) et la page des recettes protéinées (`index3.html`).
+Ce guide explique comment utiliser la version actuelle du site (V8, `index7.html`) et la page des recettes protéinées (`index3.html`).
 
 Retour à l'[accueil de la documentation](accueil.md).
 
@@ -101,12 +101,46 @@ Onglet **Historique** :
   - petit cadre pointillé : pas de saisie ce jour-là.
 - Le tableau détaille chaque jour (calories, écart à l'objectif, protéines, glucides, lipides, eau). Le bouton **Ouvrir** affiche le journal de ce jour pour le compléter.
 
-## 4. Trouver des idées de repas
+## 4. Cuisiner une recette pas à pas, à la voix
+
+Onglet **Cuisiner** : choisis une des recettes protéinées et clique sur **Cuisiner**. La recette s'affiche en grand, une étape à la fois, et le site la lit à voix haute : les ingrédients d'abord, puis chaque étape.
+
+- **Sans les mains** : clique une fois sur **Activer les commandes vocales** et autorise le micro. Dis ensuite :
+
+| Tu dis | Effet |
+|---|---|
+| « suivant », « après », « continue » | Étape suivante |
+| « précédent », « retour », « reviens » | Étape précédente |
+| « répète », « encore » | Relit l'étape |
+| « stop », « arrête », « pause » | Coupe la lecture |
+| « ingrédients » | Revient à la liste des ingrédients |
+| « ferme », « quitte » | Quitte le mode cuisine |
+
+- Pendant que le site parle, seul « stop » est écouté (le micro entend aussi la voix du site). Attends la fin de la lecture pour dire « suivant ».
+- **Avec les mains** : boutons Précédent / Répéter / Suivant, ou flèches ← → du clavier ; Échap pour quitter. La case **Lire les étapes à voix haute** coupe la voix.
+- À la dernière étape, le bouton **Ajouter 1 portion au journal** l'enregistre dans le repas choisi, avec ses calories et ses macros.
+- L'écran reste allumé pendant la recette quand le navigateur le permet.
+
+```mermaid
+stateDiagram-v2
+    [*] --> Ingredients: Cuisiner
+    Ingredients --> Etape1: « suivant »
+    Etape1 --> Etape2: « suivant »
+    Etape2 --> Etape1: « précédent »
+    Etape2 --> Etape2: « répète »
+    Etape2 --> Fin: « suivant » (dernière étape)
+    Fin --> [*]: Ajouter au journal / « ferme »
+    Etape1 --> Ingredients: « ingrédients »
+```
+
+> Les commandes vocales marchent dans Chrome, Edge et Safari, pas dans Firefox (la lecture à voix haute et les boutons, si). Le micro ne fonctionne que sur le site en ligne (https) ou en local (`localhost`).
+
+## 5. Trouver des idées de repas
 
 - Onglet **Idées de repas** : indique des ingrédients séparés par des virgules (ex. « poulet, riz ») pour obtenir des recettes de la base TheMealDB (en anglais, sans valeurs nutritionnelles : tu saisis les calories de ta portion).
 - Page **Recettes protéinées** (`index3.html`, lien en haut de la page) : 12 recettes françaises avec calories et macros calculées. Filtre par type (repas, collation sucrée, collation salée), par protéines minimales, ou cherche un ingrédient. Le bouton **Ajouter 1 portion** l'ajoute au journal avec ses vraies valeurs.
 
-## 5. Où sont mes données ?
+## 6. Où sont mes données ?
 
 Tout est enregistré **dans ton navigateur** (localStorage) : il n'y a pas de compte. Conséquences :
 
@@ -122,5 +156,8 @@ Tout est enregistré **dans ton navigateur** (localStorage) : il n'y a pas de co
 | Un produit n'a pas de calories | Il n'est pas affiché : la fiche Open Food Facts est incomplète. Essaie un autre produit. |
 | Le bouton « Utiliser comme objectif » est grisé | Une valeur du profil est hors limites (âge 15–100 ans, poids 30–300 kg, taille 120–230 cm). |
 | Mon historique est vide | Les données sont propres à chaque navigateur : utilise celui où tu as rempli ton journal. |
+| Le bouton « Activer les commandes vocales » n'apparaît pas | Le navigateur ne gère pas la reconnaissance vocale (Firefox) : utilise Chrome, Edge ou Safari. |
+| « Micro refusé » | Autorise le micro pour le site (icône à gauche de l'adresse), puis réactive les commandes vocales. |
+| Le site ne parle pas | Vérifie le volume et la case « Lire les étapes à voix haute » ; sur iPhone, le mode silencieux coupe la voix. |
 
 Les valeurs affichées sont des **estimations indicatives**, pas un avis médical ni diététique.
